@@ -1,4 +1,4 @@
-const { ALLOWED_CORS, DEFAULT_ALLOWED_METHODS } = require('../utils/mongodb_settings');
+const { ALLOWED_CORS, DEFAULT_ALLOWED_METHODS } = require('../utils/constants');
 
 module.exports = (req, res, next) => {
   const { origin } = req.headers;

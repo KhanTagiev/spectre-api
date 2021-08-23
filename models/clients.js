@@ -13,6 +13,11 @@ const clientShema = new mongoose.Schema({
     ref: 'user',
     required: true,
   },
+  date: {
+    type: Date,
+    required: true,
+    default: new Date(),
+  },
 });
 
 module.exports = mongoose.model('client', clientShema);

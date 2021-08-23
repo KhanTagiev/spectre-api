@@ -9,6 +9,7 @@ const SECRET_CODE = '$2b$12$CmlwbfGcHhRkZZQGC5ymEerYSgHdPgIL4Chvg.GMdw8G3V1DeGFf
 
 const ALLOWED_CORS = [
   'http://localhost:3000',
+  'http://localhost:3002/',
 ];
 
 const DEFAULT_ALLOWED_METHODS = 'GET,HEAD,PUT,PATCH,POST,DELETE';

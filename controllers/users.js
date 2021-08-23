@@ -55,7 +55,7 @@ const signIn = async (req, res, next) => {
     const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : SECRET_CODE, { expiresIn: '7d' });
 
     res.cookie('jwt', token, {
-      maxAge: 10080000,
+      maxAge: 604800000,
       httpOnly: true,
       sameSite: true,
     });

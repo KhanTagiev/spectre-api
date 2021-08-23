@@ -6,13 +6,15 @@ const { errors } = require('celebrate');
 
 const { MONGODB_URL, MONGODB_OPTIONS } = require('./utils/mongodb_settings');
 const Router = require('./routes/index');
+const corsMiddleware = require('./middlewares/cors');
 
 const app = express();
 
-const { PORT = 3000 } = process.env;
+const { PORT = 3002 } = process.env;
 
 mongoose.connect(MONGODB_URL, MONGODB_OPTIONS);
 
+app.use(corsMiddleware);
 app.use(express.json());
 app.use(cookieParser());
 

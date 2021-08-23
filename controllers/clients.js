@@ -8,7 +8,7 @@ const ConflictErr = require('../errors/conflict-err');
 const getClients = async (req, res, next) => {
   try {
     const owner = req.user._id;
-    const clients = await Client.find({ owner });
+    const clients = await Client.find({ owner }).sort('-date');
 
     return res.send(clients);
   } catch (err) { return next(err); }
@@ -18,7 +18,8 @@ const addClient = async (req, res, next) => {
   try {
     const owner = req.user._id;
     const { name } = req.body;
-    const client = new Client({ name, owner });
+    const date = new Date();
+    const client = new Client({ name, owner, date });
     await client.save();
     return res.send(client);
   } catch (err) {
