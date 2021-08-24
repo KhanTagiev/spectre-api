@@ -43,8 +43,8 @@ const getReports = async (req, res, next) => {
 
 const getAllReports = async (req, res, next) => {
   try {
-    const number = Number(req.params.articleId);
-    const reports = await Report.find({ number });
+    const owner = req.user._id;
+    const reports = await Report.find({owner}).sort('-date');
 
     return res.send(reports);
   } catch (err) { return next(err); }
