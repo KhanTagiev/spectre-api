@@ -13,11 +13,12 @@ const searchArray = async (req, res) => {
     });
     const reports = [];
     /* eslint-disable-next-line */
+    const date = new Date().toLocaleString();
     for (const result of results) {
       const {
         keyword, pageNumber, pagePosition, ownerArticle, error,
       } = result;
-      const date = new Date();
+
       /* eslint-disable no-await-in-loop */
       const report = await new Report({
         number, keyword, pageNumber, pagePosition, error, owner, ownerClient, ownerArticle, date,
