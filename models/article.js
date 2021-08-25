@@ -15,7 +15,8 @@ const articleShema = new mongoose.Schema({
   },
   keywords: [{
     type: String,
-    default: [],
+    minlength: 2,
+    maxlength: 50,
   }],
   owner: {
     type: mongoose.Schema.Types.ObjectId,

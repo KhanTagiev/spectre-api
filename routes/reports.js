@@ -1,13 +1,13 @@
 const Router = require('express').Router();
 
 const {
-  searchArray,
+  searchAllUserArticles,
   getReports,
   getAllReports,
 } = require('../controllers/reports');
 
 Router.get('/', getAllReports);
 Router.get('/:articleId', getReports);
-Router.post('/', searchArray);
+Router.post('/', searchAllUserArticles);
 
 module.exports = Router;

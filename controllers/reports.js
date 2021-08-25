@@ -1,32 +1,38 @@
 const Report = require('../models/report');
+const Article = require('../models/article');
 
 const wbScrapper = require('../utils/wbScrapper');
 
-const searchArray = async (req, res) => {
+const searchAllUserArticles = async (req, res) => {
   try {
     const owner = req.user._id;
-    const {
-      number, keywords, ownerClient, _id,
-    } = req.body;
-    const results = await wbScrapper.searchArray({
-      number, keywords, ownerClient, _id,
-    });
+    const articles = await Article.find({ owner });
+    const results = await wbScrapper.searchAllArticles(articles);
     const reports = [];
-    /* eslint-disable-next-line */
     const date = new Date().toLocaleString();
+    /* eslint-disable-next-line */
     for (const result of results) {
       const {
-        keyword, pageNumber, pagePosition, ownerArticle, error,
+        name, number, keyword, pageNumber, pagePosition, ownerClient, ownerArticle, error,
       } = result;
-
       /* eslint-disable no-await-in-loop */
       const report = await new Report({
-        number, keyword, pageNumber, pagePosition, error, owner, ownerClient, ownerArticle, date,
+        name,
+        number,
+        keyword,
+        pageNumber,
+        pagePosition,
+        error,
+        owner,
+        ownerClient,
+        ownerArticle,
+        date,
       });
       /* eslint-disable no-await-in-loop */
       await report.save();
       reports.push(report);
     }
+
     res.send(reports);
   } catch (e) {
     res.send(e);
@@ -45,14 +51,14 @@ const getReports = async (req, res, next) => {
 const getAllReports = async (req, res, next) => {
   try {
     const owner = req.user._id;
-    const reports = await Report.find({owner}).sort('-date');
+    const reports = await Report.find({ owner }).sort('-date');
 
     return res.send(reports);
   } catch (err) { return next(err); }
 };
 
 module.exports = {
-  searchArray,
+  searchAllUserArticles,
   getReports,
   getAllReports,
 };

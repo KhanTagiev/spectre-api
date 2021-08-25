@@ -21,6 +21,7 @@ module.exports = class Scrapper {
     const pageURL = `https://www.wildberries.ru/catalog/0/search.aspx?search=${query.keyword}&page=${Scrapper.pageNumber}`;
     try {
       await Scrapper.page.goto(pageURL);
+      await Scrapper.page.waitForTimeout(5000);
     } catch (error) {
       const articlePosition = 'Failed to open the page';
       return articlePosition;
@@ -99,22 +100,27 @@ module.exports = class Scrapper {
     return articlePosition;
   }
 
-  static async searchArray(query) {
-    const {
-      number, keywords, ownerClient, _id,
-    } = query;
-
+  static async searchAllArticles(articles) {
     await this.init();
     const result = [];
     /* eslint-disable-next-line */
-    for (const keyword of keywords) {
+    for (const article of articles) {
+      const {
+        name, number, keywords, owner, ownerClient, _id,
+      } = article;
       Scrapper.pageNumber = 1;
-      /* eslint-disable no-await-in-loop */
-      const articlePosition = await this.searchArticlePosition({ number, keyword });
-      const item = {
-        number, keyword, ...articlePosition, ownerClient, ownerArticle: _id,
-      };
-      result.push(item);
+      const articleResult = [];
+      /* eslint-disable-next-line */
+      for (const keyword of keywords) {
+        Scrapper.pageNumber = 1;
+
+        const articlePosition = await this.searchArticlePosition({ number, keyword });
+        const item = {
+          name, number, keyword, ...articlePosition, owner, ownerClient, ownerArticle: _id,
+        };
+        articleResult.push(item);
+      }
+      result.push(...articleResult);
     }
     await this.close();
     return result;
