@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const UnAuthErr = require('../errors/un-auth-err');
 
 const { NODE_ENV, JWT_SECRET } = process.env;
-const { SECRET_CODE } = require('../utils/mongodb_settings');
+const { SECRET_CODE } = require('../utils/constants');
 
 module.exports = async (req, res, next) => {
   try {

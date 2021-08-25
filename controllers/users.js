@@ -8,7 +8,7 @@ const BadReqErr = require('../errors/bad-req-err');
 const ConflictErr = require('../errors/conflict-err');
 const NotFoundErr = require('../errors/not-found-err');
 const UnAuthErr = require('../errors/un-auth-err');
-const { SECRET_CODE } = require('../utils/mongodb_settings');
+const { SECRET_CODE } = require('../utils/constants');
 
 const signUp = async (req, res, next) => {
   try {
