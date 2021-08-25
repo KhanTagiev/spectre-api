@@ -18,7 +18,7 @@ app.use(corsMiddleware);
 app.use(express.json());
 app.use(cookieParser());
 
-app.use('/', Router);
+app.use('/api', Router);
 
 app.use(errors());
 app.use((err, req, res, next) => {

@@ -21,7 +21,7 @@ module.exports = class Scrapper {
     const pageURL = `https://www.wildberries.ru/catalog/0/search.aspx?search=${query.keyword}&page=${Scrapper.pageNumber}`;
     try {
       await Scrapper.page.goto(pageURL);
-      await Scrapper.page.waitForTimeout(5000);
+      await Scrapper.page.waitForTimeout(1000);
     } catch (error) {
       const articlePosition = 'Failed to open the page';
       return articlePosition;
