@@ -9,6 +9,7 @@ const SECRET_CODE = '$2b$12$CmlwbfGcHhRkZZQGC5ymEerYSgHdPgIL4Chvg.GMdw8G3V1DeGFf
 
 const ALLOWED_CORS = [
   'https://spectre-crm.ru',
+  'https://www.spectre-crm.ru',
   'http://localhost:3000',
 ];
 

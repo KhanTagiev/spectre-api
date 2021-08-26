@@ -1,5 +1,6 @@
 const Article = require('../models/article');
 const Client = require('../models/clients');
+const Report = require('../models/report');
 
 const BadReqErr = require('../errors/bad-req-err');
 const ForbiddenErr = require('../errors/forbidden-err');
@@ -68,6 +69,7 @@ const deleteArticles = async (req, res, next) => {
     if (String(article.ownerClient) !== ownerClient) { return next(new ForbiddenErr('Артикул не принадлежит данному клиенту')); }
 
     const articleDelete = await Article.findByIdAndDelete(_id);
+    const deleteReports = await Report.deleteMany({number: articleDelete.number});
     return res.send(articleDelete);
   } catch (err) {
     if (err.name === 'CastError') { return next(new BadReqErr('Передан некорректный _id клиента')); }
@@ -119,6 +121,8 @@ const deleteKeyword = async (req, res, next) => {
     );
 
     if (!article) { return next(new NotFoundErr('Такого артикула не существует')); }
+
+    const deleteReports = await Report.deleteMany({keyword});
 
     return res.send(article);
   } catch (err) {
