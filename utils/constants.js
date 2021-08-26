@@ -8,8 +8,9 @@ const ERR_CODE_INT_SER = 500;
 const SECRET_CODE = '$2b$12$CmlwbfGcHhRkZZQGC5ymEerYSgHdPgIL4Chvg.GMdw8G3V1DeGFfq';
 
 const ALLOWED_CORS = [
-  'http://84.201.153.159/',
-  'http://localhost:3002/',
+  'http://spectre-crm.ru',
+  'https://spectre-crm.ru',
+  'http://localhost:3000/',
 ];
 
 const DEFAULT_ALLOWED_METHODS = 'GET,HEAD,PUT,PATCH,POST,DELETE';

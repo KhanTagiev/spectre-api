@@ -10,7 +10,7 @@ const corsMiddleware = require('./middlewares/cors');
 
 const app = express();
 
-const { PORT = 3002 } = process.env;
+const { PORT = 3000 } = process.env;
 
 mongoose.connect(MONGODB_URL, MONGODB_OPTIONS);
 

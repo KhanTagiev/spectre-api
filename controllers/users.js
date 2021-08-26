@@ -57,7 +57,8 @@ const signIn = async (req, res, next) => {
     res.cookie('jwt', token, {
       maxAge: 604800000,
       httpOnly: true,
-      sameSite: true,
+      sameSite: 'none',
+      secure: true,
     });
 
     return res.send({ token });
@@ -70,7 +71,8 @@ const signOut = async (req, res, next) => {
   try {
     res.clearCookie('jwt', {
       httpOnly: true,
-      sameSite: true,
+      sameSite: 'none',
+      secure: true,
     });
 
     return res.send('Токен удален');
