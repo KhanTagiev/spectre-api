@@ -69,7 +69,7 @@ const deleteArticles = async (req, res, next) => {
     if (String(article.ownerClient) !== ownerClient) { return next(new ForbiddenErr('Артикул не принадлежит данному клиенту')); }
 
     const articleDelete = await Article.findByIdAndDelete(_id);
-    const deleteReports = await Report.deleteMany({number: articleDelete.number});
+    const deleteReports = await Report.deleteMany({ownerArticle: articleDelete._id});
     return res.send(articleDelete);
   } catch (err) {
     if (err.name === 'CastError') { return next(new BadReqErr('Передан некорректный _id клиента')); }
