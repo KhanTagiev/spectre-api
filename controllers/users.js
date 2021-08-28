@@ -58,7 +58,7 @@ const signIn = async (req, res, next) => {
       maxAge: 604800000,
       httpOnly: true,
       sameSite: NODE_ENV === 'production' ? 'none' : true,
-      secure: NODE_ENV === 'production' ? true : false,
+      secure: NODE_ENV === 'production',
     });
 
     return res.send({ token });
@@ -72,7 +72,7 @@ const signOut = async (req, res, next) => {
     res.clearCookie('jwt', {
       httpOnly: true,
       sameSite: NODE_ENV === 'production' ? 'none' : true,
-      secure: NODE_ENV === 'production' ? true : false,
+      secure: NODE_ENV === 'production',
     });
 
     return res.send('Токен удален');

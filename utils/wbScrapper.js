@@ -1,5 +1,6 @@
 const puppeteer = require('puppeteer');
-const { NODE_ENV} = process.env;
+
+const { NODE_ENV } = process.env;
 
 module.exports = class Scrapper {
   static browser;
@@ -13,7 +14,7 @@ module.exports = class Scrapper {
   static isDtList = false;
 
   static async init() {
-    Scrapper.browser = await puppeteer.launch({ headless: NODE_ENV === 'production' ? true : false , args:['--no-sandbox']});
+    Scrapper.browser = await puppeteer.launch({ headless: NODE_ENV === 'production', args: ['--no-sandbox'] });
     Scrapper.page = await Scrapper.browser.newPage();
     await Scrapper.page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36');
   }
@@ -112,21 +113,27 @@ module.exports = class Scrapper {
     /* eslint-disable-next-line */
     for (const article of articles) {
       const {
-        name, number, keywords, owner, ownerClient, _id,
+        name, numbers, keywords, owner, ownerClient, _id,
       } = article;
       Scrapper.pageNumber = 1;
-      const articleResult = [];
+      const numberResult = [];
       /* eslint-disable-next-line */
-      for (const keyword of keywords) {
+      for (const number of numbers) {
         Scrapper.pageNumber = 1;
-
-        const articlePosition = await this.searchArticlePosition({ number, keyword });
-        const item = {
-          name, number, keyword, ...articlePosition, owner, ownerClient, ownerArticle: _id,
-        };
-        articleResult.push(item);
+        const articleResult = [];
+        /* eslint-disable-next-line */
+        for (const keyword of keywords) {
+          Scrapper.pageNumber = 1;
+          /* eslint-disable no-await-in-loop */
+          const articlePosition = await this.searchArticlePosition({ number, keyword });
+          const item = {
+            name, number, keyword, ...articlePosition, owner, ownerClient, ownerArticle: _id,
+          };
+          articleResult.push(item);
+        }
+        numberResult.push(...articleResult);
       }
-      result.push(...articleResult);
+      result.push(...numberResult);
     }
     await this.close();
     return result;

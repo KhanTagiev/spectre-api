@@ -33,7 +33,7 @@ const addArticles = async (req, res, next) => {
   try {
     const owner = req.user._id;
     const ownerClient = req.params.clientId;
-    const { name, number, keywords } = req.body;
+    const { name, numbers, keywords } = req.body;
     const date = new Date();
 
     const client = await Client.findById(ownerClient);
@@ -41,7 +41,7 @@ const addArticles = async (req, res, next) => {
     if (String(client.owner) !== owner) { return next(new ForbiddenErr('Это не ваш клиент')); }
 
     const article = new Article({
-      name, number, keywords, owner, ownerClient, date,
+      name, numbers, keywords, owner, ownerClient, date,
     });
     await article.save();
     return res.send(article);
@@ -69,10 +69,64 @@ const deleteArticles = async (req, res, next) => {
     if (String(article.ownerClient) !== ownerClient) { return next(new ForbiddenErr('Артикул не принадлежит данному клиенту')); }
 
     const articleDelete = await Article.findByIdAndDelete(_id);
-    const deleteReports = await Report.deleteMany({ownerArticle: articleDelete._id});
+    await Report.deleteMany({ ownerArticle: articleDelete._id });
     return res.send(articleDelete);
   } catch (err) {
     if (err.name === 'CastError') { return next(new BadReqErr('Передан некорректный _id клиента')); }
+
+    return next(err);
+  }
+};
+
+const addNumbers = async (req, res, next) => {
+  try {
+    const owner = req.user._id;
+    const ownerClient = req.params.clientId;
+    const _id = req.params.articleId;
+    const { numbers } = req.body;
+
+    const client = await Client.findById(ownerClient);
+    if (!client) { return next(new NotFoundErr('Нет клиента с указанным _id')); }
+    if (String(client.owner) !== owner) { return next(new ForbiddenErr('Это не ваш клиент')); }
+    const article = await Article.findByIdAndUpdate(
+      _id,
+      { $addToSet: { numbers } },
+      { new: true },
+    );
+
+    if (!article) { return next(new NotFoundErr('Такого артикула не существует')); }
+
+    return res.send(article);
+  } catch (err) {
+    if (err.name === 'CastError') { return next(new BadReqErr('Переданы некорректные данные для добавления поисковых ключей')); }
+
+    return next(err);
+  }
+};
+
+const deleteNumber = async (req, res, next) => {
+  try {
+    const owner = req.user._id;
+    const ownerClient = req.params.clientId;
+    const _id = req.params.articleId;
+    const { number } = req.body;
+
+    const client = await Client.findById(ownerClient);
+    if (!client) { return next(new NotFoundErr('Нет клиента с указанным _id')); }
+    if (String(client.owner) !== owner) { return next(new ForbiddenErr('Это не ваш клиент')); }
+    const article = await Article.findByIdAndUpdate(
+      _id,
+      { $pull: { numbers: number } },
+      { new: true },
+    );
+
+    if (!article) { return next(new NotFoundErr('Такого артикула не существует')); }
+
+    await Report.deleteMany({ number, ownerArticle: _id });
+
+    return res.send(article);
+  } catch (err) {
+    if (err.name === 'CastError') { return next(new BadReqErr('Переданы некорректные данные для добавления поисковых ключей')); }
 
     return next(err);
   }
@@ -122,7 +176,7 @@ const deleteKeyword = async (req, res, next) => {
 
     if (!article) { return next(new NotFoundErr('Такого артикула не существует')); }
 
-    const deleteReports = await Report.deleteMany({keyword});
+    await Report.deleteMany({ keyword, ownerArticle: _id });
 
     return res.send(article);
   } catch (err) {
@@ -137,6 +191,8 @@ module.exports = {
   getAllArticles,
   addArticles,
   deleteArticles,
+  addNumbers,
+  deleteNumber,
   addKeyword,
   deleteKeyword,
 };

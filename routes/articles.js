@@ -6,6 +6,8 @@ const {
   getAllArticles,
   addArticles,
   deleteArticles,
+  addNumbers,
+  deleteNumber,
   addKeyword,
   deleteKeyword,
 } = require('../controllers/articles');
@@ -22,8 +24,8 @@ Router.post('/:clientId', celebrate({
   }).unknown(true),
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(50),
-    number: Joi.number().required().min(999999).max(99999999),
-    keywords: Joi.array(),
+    numbers: Joi.array().items(Joi.number().required().min(9999).max(1000000000)),
+    keywords: Joi.array().items(Joi.string().required().min(2).max(50)),
   }),
 }), addArticles);
 Router.delete('/:clientId/:articleId', celebrate({
@@ -33,11 +35,34 @@ Router.delete('/:clientId/:articleId', celebrate({
   }).unknown(true),
 }), deleteArticles);
 
+Router.put('/:clientId/:articleId/numbers', celebrate({
+  params: Joi.object().keys({
+    clientId: Joi.string().hex().length(24),
+    articleId: Joi.string().hex().length(24),
+  }).unknown(true),
+  body: Joi.object().keys({
+    numbers: Joi.array().items(Joi.number().required().min(9999).max(1000000000)),
+  }),
+}), addNumbers);
+
+Router.delete('/:clientId/:articleId/numbers', celebrate({
+  params: Joi.object().keys({
+    clientId: Joi.string().hex().length(24),
+    articleId: Joi.string().hex().length(24),
+  }).unknown(true),
+  body: Joi.object().keys({
+    number: Joi.number().required().min(9999).max(1000000000),
+  }),
+}), deleteNumber);
+
 Router.put('/:clientId/:articleId/keys', celebrate({
   params: Joi.object().keys({
     clientId: Joi.string().hex().length(24),
     articleId: Joi.string().hex().length(24),
   }).unknown(true),
+  body: Joi.object().keys({
+    keywords: Joi.array().items(Joi.string().required().min(2).max(50)),
+  }),
 }), addKeyword);
 
 Router.delete('/:clientId/:articleId/keys', celebrate({
@@ -45,6 +70,9 @@ Router.delete('/:clientId/:articleId/keys', celebrate({
     clientId: Joi.string().hex().length(24),
     articleId: Joi.string().hex().length(24),
   }).unknown(true),
+  body: Joi.object().keys({
+    keyword: Joi.string().required().min(2).max(50),
+  }),
 }), deleteKeyword);
 
 module.exports = Router;

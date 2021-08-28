@@ -7,14 +7,15 @@ const articleShema = new mongoose.Schema({
     minlength: 2,
     maxlength: 50,
   },
-  number: {
+  numbers: [{
     type: Number,
     required: true,
     minlength: 5,
     maxlength: 10,
-  },
+  }],
   keywords: [{
     type: String,
+    required: true,
     minlength: 2,
     maxlength: 50,
   }],
