@@ -25,7 +25,7 @@ Router.post('/:clientId', celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(50),
     numbers: Joi.array().items(Joi.number().required().min(9999).max(1000000000)),
-    keywords: Joi.array().items(Joi.string().required().min(2).max(50)),
+    keywords: Joi.array().items(Joi.string().required().min(2).max(150)),
   }),
 }), addArticles);
 Router.delete('/:clientId/:articleId', celebrate({
@@ -61,7 +61,7 @@ Router.put('/:clientId/:articleId/keys', celebrate({
     articleId: Joi.string().hex().length(24),
   }).unknown(true),
   body: Joi.object().keys({
-    keywords: Joi.array().items(Joi.string().required().min(2).max(50)),
+    keywords: Joi.array().items(Joi.string().required().min(2).max(150)),
   }),
 }), addKeyword);
 
@@ -71,7 +71,7 @@ Router.delete('/:clientId/:articleId/keys', celebrate({
     articleId: Joi.string().hex().length(24),
   }).unknown(true),
   body: Joi.object().keys({
-    keyword: Joi.string().required().min(2).max(50),
+    keyword: Joi.string().required().min(2).max(150),
   }),
 }), deleteKeyword);
 
