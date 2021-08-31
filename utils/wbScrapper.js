@@ -14,7 +14,19 @@ module.exports = class Scrapper {
   static isDtList = false;
 
   static async init() {
-    Scrapper.browser = await puppeteer.launch({ headless: NODE_ENV === 'production', args: ['--no-sandbox'] });
+    Scrapper.browser = await puppeteer.launch({
+      headless: NODE_ENV === 'production',
+      args: ['--disable-gpu',
+        '--disable-dev-shm-usage',
+        '--disable-setuid-sandbox',
+        '--no-first-run',
+        '--no-sandbox',
+        '--no-zygote',
+        '--deterministic-fetch',
+        '--disable-features=IsolateOrigins',
+        '--disable-site-isolation-trials',
+      ],
+    });
     Scrapper.page = await Scrapper.browser.newPage();
     await Scrapper.page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36');
   }
@@ -49,19 +61,22 @@ module.exports = class Scrapper {
 
     function returnArticlesList() {
       const articleCards = () => {
-        let cards = document.body.querySelector('#catalog-content').querySelectorAll('.product-card');
+        let cards = document.body.querySelector('#catalog-content')
+          .querySelectorAll('.product-card');
         if (cards.length === 0) {
-          cards = document.body.querySelector('#catalog-content').querySelectorAll('.dtList');
+          cards = document.body.querySelector('#catalog-content')
+            .querySelectorAll('.dtList');
         }
         return cards;
       };
 
-      return Array.from(articleCards()).map((element) => {
-        if (element.dataset.popupNmId === undefined) {
-          return Number(element.dataset.nmId);
-        }
-        return Number(element.dataset.popupNmId);
-      });
+      return Array.from(articleCards())
+        .map((element) => {
+          if (element.dataset.popupNmId === undefined) {
+            return Number(element.dataset.nmId);
+          }
+          return Number(element.dataset.popupNmId);
+        });
     }
 
     const articlesList = await Scrapper.page.evaluate(returnArticlesList);
@@ -91,7 +106,10 @@ module.exports = class Scrapper {
       const result = { error: 'Search error' };
       return result;
     }
-    const result = { pageNumber: Scrapper.pageNumber, pagePosition: articlePosition };
+    const result = {
+      pageNumber: Scrapper.pageNumber,
+      pagePosition: articlePosition,
+    };
     return result;
   }
 
@@ -113,7 +131,12 @@ module.exports = class Scrapper {
     /* eslint-disable-next-line */
     for (const article of articles) {
       const {
-        name, numbers, keywords, owner, ownerClient, _id,
+        name,
+        numbers,
+        keywords,
+        owner,
+        ownerClient,
+        _id,
       } = article;
       Scrapper.pageNumber = 1;
       const numberResult = [];
@@ -125,9 +148,18 @@ module.exports = class Scrapper {
         for (const keyword of keywords) {
           Scrapper.pageNumber = 1;
           /* eslint-disable no-await-in-loop */
-          const articlePosition = await this.searchArticlePosition({ number, keyword });
+          const articlePosition = await this.searchArticlePosition({
+            number,
+            keyword,
+          });
           const item = {
-            name, number, keyword, ...articlePosition, owner, ownerClient, ownerArticle: _id,
+            name,
+            number,
+            keyword,
+            ...articlePosition,
+            owner,
+            ownerClient,
+            ownerArticle: _id,
           };
           articleResult.push(item);
         }
