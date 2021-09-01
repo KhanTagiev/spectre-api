@@ -7,32 +7,21 @@ const searchAllUserArticles = async (req, res) => {
   try {
     const owner = req.user._id;
     const articles = await Article.find({ owner });
-    const results = await wbScrapper.searchAllArticles(articles);
-    const reports = [];
     const date = new Date().toLocaleString();
+    const reports = [];
+    /* eslint-disable no-await-in-loop */
     /* eslint-disable-next-line */
-    for (const result of results) {
-      const {
-        name, number, keyword, pageNumber, pagePosition, ownerClient, ownerArticle, error,
-      } = result;
-      /* eslint-disable no-await-in-loop */
-      const report = await new Report({
-        name,
-        number,
-        keyword,
-        pageNumber,
-        pagePosition,
-        error,
-        owner,
-        ownerClient,
-        ownerArticle,
-        date,
-      });
-      /* eslint-disable no-await-in-loop */
-      await report.save();
-      reports.push(report);
+    for (const article of articles) {
+      const searchResults = await wbScrapper.searchArticle(article);
+      const newReports = [];
+      /* eslint-disable-next-line */
+      for (const result of searchResults) {
+        const report = await new Report({ ...result, date });
+        await report.save();
+        newReports.push(report);
+      }
+      reports.push(...newReports);
     }
-
     res.send(reports);
   } catch (e) {
     res.send(e);
