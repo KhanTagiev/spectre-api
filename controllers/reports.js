@@ -5,8 +5,7 @@ const wbScrapper = require('../utils/wbScrapper');
 
 const searchAllUserArticles = async (req, res) => {
   try {
-    const owner = req.user._id;
-    const articles = await Article.find({ owner });
+    const articles = await Article.find({ });
     const date = new Date().toLocaleString();
     const reports = [];
     /* eslint-disable no-await-in-loop */
