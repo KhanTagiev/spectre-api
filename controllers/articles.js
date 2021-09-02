@@ -78,6 +78,34 @@ const deleteArticles = async (req, res, next) => {
   }
 };
 
+const updateName = async (req, res, next) => {
+  try {
+    const owner = req.user._id;
+    const ownerClient = req.params.clientId;
+    const _id = req.params.articleId;
+    const { name } = req.body;
+
+    const client = await Client.findById(ownerClient);
+    if (!client) { return next(new NotFoundErr('Нет клиента с указанным _id')); }
+    if (String(client.owner) !== owner) { return next(new ForbiddenErr('Это не ваш клиент')); }
+    const article = await Article.findByIdAndUpdate(
+      _id,
+      { name },
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
+    if (!article) { return next(new NotFoundErr('Такого артикула не существует')); }
+
+    return res.send(article);
+  } catch (err) {
+    if (err.name === 'CastError') { return next(new BadReqErr('Переданы некорректные данные для обновления имени')); }
+
+    return next(err);
+  }
+};
+
 const addNumbers = async (req, res, next) => {
   try {
     const owner = req.user._id;
@@ -191,6 +219,7 @@ module.exports = {
   getAllArticles,
   addArticles,
   deleteArticles,
+  updateName,
   addNumbers,
   deleteNumber,
   addKeyword,

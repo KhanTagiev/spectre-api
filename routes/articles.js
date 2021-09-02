@@ -6,6 +6,7 @@ const {
   getAllArticles,
   addArticles,
   deleteArticles,
+  updateName,
   addNumbers,
   deleteNumber,
   addKeyword,
@@ -34,6 +35,16 @@ Router.delete('/:clientId/:articleId', celebrate({
     articleId: Joi.string().hex().length(24),
   }).unknown(true),
 }), deleteArticles);
+
+Router.patch('/:clientId/:articleId/name', celebrate({
+  params: Joi.object().keys({
+    clientId: Joi.string().hex().length(24),
+    articleId: Joi.string().hex().length(24),
+  }).unknown(true),
+  body: Joi.object().keys({
+    name: Joi.string().required().min(2).max(50),
+  }),
+}), updateName);
 
 Router.put('/:clientId/:articleId/numbers', celebrate({
   params: Joi.object().keys({
