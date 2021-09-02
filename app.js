@@ -7,6 +7,7 @@ const { errors } = require('celebrate');
 const { MONGODB_URL, MONGODB_OPTIONS } = require('./utils/mongodb_settings');
 const Router = require('./routes/index');
 const corsMiddleware = require('./middlewares/cors');
+const updateCron = require('./utils/autoUpdateReports');
 
 const app = express();
 
@@ -32,3 +33,5 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, () => {});
+
+updateCron.start();
