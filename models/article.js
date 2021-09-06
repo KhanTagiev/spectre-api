@@ -7,6 +7,18 @@ const articleShema = new mongoose.Schema({
     minlength: 2,
     maxlength: 50,
   },
+  brand: {
+    type: String,
+    required: true,
+    minlength: 2,
+    maxlength: 50,
+  },
+  category: {
+    type: String,
+    required: true,
+    minlength: 2,
+    maxlength: 150,
+  },
   numbers: [{
     type: Number,
     required: true,

@@ -6,7 +6,7 @@ const {
   getAllArticles,
   addArticles,
   deleteArticles,
-  updateName,
+  updateArticles,
   addNumbers,
   deleteNumber,
   addKeyword,
@@ -25,6 +25,8 @@ Router.post('/:clientId', celebrate({
   }).unknown(true),
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(50),
+    brand: Joi.string().required().min(2).max(50),
+    category: Joi.string().required().min(2).max(150),
     numbers: Joi.array().items(Joi.number().required().min(9999).max(1000000000)),
     keywords: Joi.array().items(Joi.string().required().min(2).max(150)),
   }),
@@ -36,15 +38,17 @@ Router.delete('/:clientId/:articleId', celebrate({
   }).unknown(true),
 }), deleteArticles);
 
-Router.patch('/:clientId/:articleId/name', celebrate({
+Router.patch('/:clientId/:articleId/', celebrate({
   params: Joi.object().keys({
     clientId: Joi.string().hex().length(24),
     articleId: Joi.string().hex().length(24),
   }).unknown(true),
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(50),
+    brand: Joi.string().required().min(2).max(50),
+    category: Joi.string().required().min(2).max(150),
   }),
-}), updateName);
+}), updateArticles);
 
 Router.put('/:clientId/:articleId/numbers', celebrate({
   params: Joi.object().keys({

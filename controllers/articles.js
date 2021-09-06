@@ -33,7 +33,9 @@ const addArticles = async (req, res, next) => {
   try {
     const owner = req.user._id;
     const ownerClient = req.params.clientId;
-    const { name, numbers, keywords } = req.body;
+    const {
+      name, brand, category, numbers, keywords,
+    } = req.body;
     const date = new Date();
 
     const client = await Client.findById(ownerClient);
@@ -41,7 +43,7 @@ const addArticles = async (req, res, next) => {
     if (String(client.owner) !== owner) { return next(new ForbiddenErr('Это не ваш клиент')); }
 
     const article = new Article({
-      name, numbers, keywords, owner, ownerClient, date,
+      name, brand, category, numbers, keywords, owner, ownerClient, date,
     });
     await article.save();
     return res.send(article);
@@ -78,19 +80,19 @@ const deleteArticles = async (req, res, next) => {
   }
 };
 
-const updateName = async (req, res, next) => {
+const updateArticles = async (req, res, next) => {
   try {
     const owner = req.user._id;
     const ownerClient = req.params.clientId;
     const _id = req.params.articleId;
-    const { name } = req.body;
+    const { name, brand, category } = req.body;
 
     const client = await Client.findById(ownerClient);
     if (!client) { return next(new NotFoundErr('Нет клиента с указанным _id')); }
     if (String(client.owner) !== owner) { return next(new ForbiddenErr('Это не ваш клиент')); }
     const article = await Article.findByIdAndUpdate(
       _id,
-      { name },
+      { name, brand, category },
       {
         new: true,
         runValidators: true,
@@ -219,7 +221,7 @@ module.exports = {
   getAllArticles,
   addArticles,
   deleteArticles,
-  updateName,
+  updateArticles,
   addNumbers,
   deleteNumber,
   addKeyword,
