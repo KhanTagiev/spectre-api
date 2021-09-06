@@ -85,6 +85,8 @@ module.exports = class Scrapper {
   static async searchNumbersPosition(article) {
     const {
       name,
+      brand,
+      category,
       numbers,
       keyword,
       owner,
@@ -94,6 +96,8 @@ module.exports = class Scrapper {
     const status = await this.updateArticlesList(keyword);
     const articlePositions = numbers.map((number) => ({
       name,
+      brand,
+      category,
       pagePosition: Scrapper.articleList.indexOf(number) + 1,
       number,
       keyword,
@@ -130,6 +134,8 @@ module.exports = class Scrapper {
   static async searchArticle(article) {
     const {
       name,
+      brand,
+      category,
       numbers,
       keywords,
       owner,
@@ -146,6 +152,8 @@ module.exports = class Scrapper {
       /* eslint-disable no-await-in-loop */
       const articlePositions = await this.searchNumbersPosition({
         name,
+        brand,
+        category,
         numbers,
         keyword,
         owner,
