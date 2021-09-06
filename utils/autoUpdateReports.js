@@ -26,7 +26,7 @@ async function reportsUpdate() {
   }
 }
 
-module.exports = cron.schedule('0 0 0,8,18 * * *', reportsUpdate, {
+module.exports = cron.schedule('0 0 8,14,19,23 * * *', reportsUpdate, {
   scheduled: true,
   timezone: 'Europe/Moscow',
 });
