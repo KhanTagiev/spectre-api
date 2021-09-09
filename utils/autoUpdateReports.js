@@ -2,7 +2,6 @@ const cron = require('node-cron');
 const Article = require('../models/article');
 const Report = require('../models/report');
 const wbScrapper = require('./wbScrapper');
-const BadReqErr = require('../errors/bad-req-err');
 
 async function reportsUpdate() {
   try {
@@ -38,30 +37,6 @@ async function ratingUpdate() {
           runValidators: true,
         },
       );
-    }
-  } catch (err) {
-    console.log(err);
-  }
-}
-
-async function ratingUpdate() {
-  try {
-    const articles = await Article.find({ });
-    const newArticles = [];
-    /* eslint-disable no-await-in-loop */
-    /* eslint-disable-next-line */
-    for (const article of articles) {
-      const { rating, reviewsCount } = await wbScrapper.searchArticleRating(article);
-      const newArticle = await Article.findByIdAndUpdate(
-        article._id,
-        { rating, reviewsCount },
-        {
-          new: true,
-          runValidators: true,
-        },
-      );
-
-      newArticles.push(newArticle);
     }
   } catch (err) {
     console.log(err);
