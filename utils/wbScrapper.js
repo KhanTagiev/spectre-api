@@ -190,9 +190,8 @@ module.exports = class Scrapper {
       const newRating = await Scrapper.page.evaluate(() => document.querySelector('.user-scores__score').textContent);
       const newReviewsCount = await Scrapper.page.evaluate(() => {
         const reviewsText = document.querySelector('.user-scores__text').textContent;
-        const reviews = parseInt(reviewsText.replace(/[^\d]/g,''))
-        console.log(reviews);
-        return reviews
+        const reviews = parseInt(reviewsText.replace(/[^\d]/g, ''), 10);
+        return reviews;
       });
       return { rating: newRating, reviewsCount: newReviewsCount };
     } catch (error) {

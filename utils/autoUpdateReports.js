@@ -8,19 +8,36 @@ async function reportsUpdate() {
   try {
     const articles = await Article.find({ });
     const date = new Date().toLocaleString();
-    const reports = [];
     /* eslint-disable no-await-in-loop */
     /* eslint-disable-next-line */
     for (const article of articles) {
       const searchResults = await wbScrapper.searchArticle(article);
-      const newReports = [];
       /* eslint-disable-next-line */
       for (const result of searchResults) {
         const report = await new Report({ ...result, date });
         await report.save();
-        newReports.push(report);
       }
-      reports.push(...newReports);
+    }
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+async function ratingUpdate() {
+  try {
+    const articles = await Article.find({ });
+    /* eslint-disable no-await-in-loop */
+    /* eslint-disable-next-line */
+    for (const article of articles) {
+      const { rating, reviewsCount } = await wbScrapper.searchArticleRating(article);
+      await Article.findByIdAndUpdate(
+        article._id,
+        { rating, reviewsCount },
+        {
+          new: true,
+          runValidators: true,
+        },
+      );
     }
   } catch (err) {
     console.log(err);
