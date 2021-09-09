@@ -7,6 +7,7 @@ const {
   addArticles,
   deleteArticles,
   updateArticles,
+  updateRating,
   addNumbers,
   deleteNumber,
   addKeyword,
@@ -49,6 +50,8 @@ Router.patch('/:clientId/:articleId/', celebrate({
     category: Joi.string().required().min(2).max(150),
   }),
 }), updateArticles);
+
+Router.post('/rating/update', updateRating);
 
 Router.put('/:clientId/:articleId/numbers', celebrate({
   params: Joi.object().keys({

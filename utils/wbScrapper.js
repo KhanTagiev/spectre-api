@@ -13,6 +13,8 @@ module.exports = class Scrapper {
 
   static articleList = [];
 
+  static articlesCount = 'Not found';
+
   static async init() {
     Scrapper.browser = await puppeteer.launch({
       headless: NODE_ENV === 'production',
@@ -34,7 +36,7 @@ module.exports = class Scrapper {
   static async updateArticlesList(keyword) {
     const pageURL = `https://www.wildberries.ru/catalog/0/search.aspx?search=${keyword}&page=${Scrapper.pageNumber}`;
     try {
-      await Scrapper.page.goto(pageURL);
+      await Scrapper.page.goto(pageURL, { waitUntil: 'networkidle0' });
       await Scrapper.page.waitForTimeout(1000);
     } catch (error) {
       return 'Failed to open the page';
@@ -57,28 +59,34 @@ module.exports = class Scrapper {
       }
     }
 
-    function returnArticlesList() {
-      const articleCards = () => {
-        let cards = document.body.querySelector('#catalog-content')
-          .querySelectorAll('.product-card');
-        if (cards.length === 0) {
-          cards = document.body.querySelector('#catalog-content')
-            .querySelectorAll('.dtList');
+    function returnArticlesInfo() {
+      const getArticlesList = () => {
+        let articlesCard;
+        articlesCard = Array.from(document.body.querySelector('#catalog-content')
+          .querySelectorAll('.product-card'));
+        if (articlesCard.length === 0) {
+          articlesCard = Array.from(document.body.querySelector('#catalog-content')
+            .querySelectorAll('.dtList'));
         }
-        return cards;
-      };
 
-      return Array.from(articleCards())
-        .map((element) => {
+        const articlesList = articlesCard.map((element) => {
           if (element.dataset.popupNmId === undefined) {
             return Number(element.dataset.nmId);
           }
           return Number(element.dataset.popupNmId);
         });
-    }
 
-    const articlesList = await Scrapper.page.evaluate(returnArticlesList);
+        return articlesList;
+      };
+      const articlesList = getArticlesList();
+      const count = document.body.querySelector('.goods-count').children[0].textContent;
+
+      return { articlesList, count };
+    }
+    const { articlesList, count } = await Scrapper.page.evaluate(returnArticlesInfo);
     Scrapper.articleList.push(...articlesList);
+
+    Scrapper.articlesCount = count;
     return 'Success';
   }
 
@@ -99,6 +107,7 @@ module.exports = class Scrapper {
       brand,
       category,
       pagePosition: Scrapper.articleList.indexOf(number) + 1,
+      articlesCount: Scrapper.articlesCount,
       number,
       keyword,
       owner,
@@ -134,8 +143,8 @@ module.exports = class Scrapper {
   static async searchArticle(article) {
     const {
       name,
-      brand,
-      category,
+      brand = 'not',
+      category = 'not',
       numbers,
       keywords,
       owner,
@@ -149,6 +158,7 @@ module.exports = class Scrapper {
     for (const keyword of keywords) {
       Scrapper.pageNumber = 1;
       Scrapper.articleList = [];
+      Scrapper.articlesCount = 'Not found';
       /* eslint-disable no-await-in-loop */
       const articlePositions = await this.searchNumbersPosition({
         name,
@@ -164,5 +174,30 @@ module.exports = class Scrapper {
     }
     await this.close();
     return articleSearchResult;
+  }
+
+  static async searchArticleRating(article) {
+    const { numbers, rating = '0', reviewsCount = '0' } = article;
+    const articlePageUrl = `https://www.wildberries.ru/catalog/${numbers[0]}/detail.aspx?targetUrl=XS`;
+    try {
+      await this.init();
+      await Scrapper.page.goto(articlePageUrl, { waitUntil: 'networkidle0' });
+      await Scrapper.page.waitForTimeout(1000);
+      await Scrapper.page.mouse.wheel({ deltaY: 3500 });
+      await Scrapper.page.waitForTimeout(1000);
+      await Scrapper.page.waitForSelector('.user-scores__score', { timeout: 10000 });
+      await Scrapper.page.waitForTimeout(2000);
+      const newRating = await Scrapper.page.evaluate(() => document.querySelector('.user-scores__score').textContent);
+      const newReviewsCount = await Scrapper.page.evaluate(() => {
+        const reviewsText = document.querySelector('.user-scores__text').textContent;
+        const reviews = parseInt(reviewsText.replace(/[^\d]/g, ''), 10);
+        return reviews;
+      });
+      return { rating: newRating, reviewsCount: newReviewsCount };
+    } catch (error) {
+      return { rating, reviewsCount };
+    } finally {
+      await this.close();
+    }
   }
 };

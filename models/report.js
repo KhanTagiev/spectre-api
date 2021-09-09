@@ -41,6 +41,11 @@ const reportShema = new mongoose.Schema({
     minlength: 1,
     maxlength: 100,
   },
+  articlesCount: {
+    type: String,
+    minlength: 1,
+    maxlength: 1000,
+  },
   error: {
     type: String,
     minlength: 2,
