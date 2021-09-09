@@ -6,6 +6,7 @@ const BadReqErr = require('../errors/bad-req-err');
 const ForbiddenErr = require('../errors/forbidden-err');
 const NotFoundErr = require('../errors/not-found-err');
 const ConflictErr = require('../errors/conflict-err');
+const wbScrapper = require('../utils/wbScrapper');
 
 const getArticles = async (req, res, next) => {
   try {
@@ -104,6 +105,31 @@ const updateArticles = async (req, res, next) => {
   } catch (err) {
     if (err.name === 'CastError') { return next(new BadReqErr('Переданы некорректные данные для обновления имени')); }
 
+    return next(err);
+  }
+};
+
+const updateRating = async (req, res, next) => {
+  try {
+    const articles = await Article.find({ });
+    const newArticles = [];
+    /* eslint-disable no-await-in-loop */
+    /* eslint-disable-next-line */
+    for (const article of articles) {
+      const { rating, reviewsCount } = await wbScrapper.searchArticleRating(article);
+      const newArticle = await Article.findByIdAndUpdate(
+        article._id,
+        { rating, reviewsCount },
+        {
+          new: true,
+          runValidators: true,
+        },
+      );
+
+      newArticles.push(newArticle);
+    }
+    return res.send(newArticles);
+  } catch (err) {
     return next(err);
   }
 };
@@ -222,6 +248,7 @@ module.exports = {
   addArticles,
   deleteArticles,
   updateArticles,
+  updateRating,
   addNumbers,
   deleteNumber,
   addKeyword,

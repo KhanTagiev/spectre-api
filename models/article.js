@@ -31,6 +31,18 @@ const articleShema = new mongoose.Schema({
     minlength: 2,
     maxlength: 150,
   }],
+  rating: {
+    type: String,
+    minlength: 1,
+    maxlength: 50,
+    default: '0',
+  },
+  reviewsCount: {
+    type: String,
+    minlength: 1,
+    maxlength: 50,
+    default: '0',
+  },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'user',

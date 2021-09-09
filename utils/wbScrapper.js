@@ -175,4 +175,30 @@ module.exports = class Scrapper {
     await this.close();
     return articleSearchResult;
   }
+
+  static async searchArticleRating(article) {
+    const { numbers, rating = '0', reviewsCount = '0' } = article;
+    const articlePageUrl = `https://www.wildberries.ru/catalog/${numbers[0]}/detail.aspx?targetUrl=XS`;
+    try {
+      await this.init();
+      await Scrapper.page.goto(articlePageUrl, { waitUntil: 'networkidle0' });
+      await Scrapper.page.waitForTimeout(1000);
+      await Scrapper.page.mouse.wheel({ deltaY: 3500 });
+      await Scrapper.page.waitForTimeout(1000);
+      await Scrapper.page.waitForSelector('.user-scores__score', { timeout: 10000 });
+      await Scrapper.page.waitForTimeout(2000);
+      const newRating = await Scrapper.page.evaluate(() => document.querySelector('.user-scores__score').textContent);
+      const newReviewsCount = await Scrapper.page.evaluate(() => {
+        const reviewsText = document.querySelector('.user-scores__text').textContent;
+        const reviews = parseInt(reviewsText.replace(/[^\d]/g,''))
+        console.log(reviews);
+        return reviews
+      });
+      return { rating: newRating, reviewsCount: newReviewsCount };
+    } catch (error) {
+      return { rating, reviewsCount };
+    } finally {
+      await this.close();
+    }
+  }
 };
