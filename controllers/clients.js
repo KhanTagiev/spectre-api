@@ -1,6 +1,5 @@
 const Client = require('../models/clients');
 const Article = require('../models/article');
-const Report = require('../models/report');
 
 const BadReqErr = require('../errors/bad-req-err');
 const ForbiddenErr = require('../errors/forbidden-err');
@@ -44,7 +43,6 @@ const deleteClient = async (req, res, next) => {
 
     const clientDelete = await Client.findByIdAndDelete(_id);
     await Article.deleteMany({ ownerClient: clientDelete._id });
-    await Report.deleteMany({ ownerClient: clientDelete._id });
     return res.send(clientDelete);
   } catch (err) {
     if (err.name === 'CastError') { return next(new BadReqErr('Передан некорректный _id клиента')); }

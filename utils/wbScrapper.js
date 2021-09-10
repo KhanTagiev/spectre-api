@@ -60,25 +60,20 @@ module.exports = class Scrapper {
     }
 
     function returnArticlesInfo() {
-      const getArticlesList = () => {
-        let articlesCard;
+      let articlesCard;
+      articlesCard = Array.from(document.body.querySelector('#catalog-content')
+        .querySelectorAll('.product-card'));
+      if (articlesCard.length === 0) {
         articlesCard = Array.from(document.body.querySelector('#catalog-content')
-          .querySelectorAll('.product-card'));
-        if (articlesCard.length === 0) {
-          articlesCard = Array.from(document.body.querySelector('#catalog-content')
-            .querySelectorAll('.dtList'));
+          .querySelectorAll('.dtList'));
+      }
+
+      const articlesList = articlesCard.map((element) => {
+        if (element.dataset.popupNmId === undefined) {
+          return Number(element.dataset.nmId);
         }
-
-        const articlesList = articlesCard.map((element) => {
-          if (element.dataset.popupNmId === undefined) {
-            return Number(element.dataset.nmId);
-          }
-          return Number(element.dataset.popupNmId);
-        });
-
-        return articlesList;
-      };
-      const articlesList = getArticlesList();
+        return Number(element.dataset.popupNmId);
+      });
       const count = document.body.querySelector('.goods-count').children[0].textContent;
 
       return { articlesList, count };
@@ -90,90 +85,55 @@ module.exports = class Scrapper {
     return 'Success';
   }
 
-  static async searchNumbersPosition(article) {
-    const {
-      name,
-      brand,
-      category,
-      numbers,
-      keyword,
-      owner,
-      ownerClient,
-      ownerArticle,
-    } = article;
+  static async searchNumbersPosition(keyword, numbers) {
     const status = await this.updateArticlesList(keyword);
-    const articlePositions = numbers.map((number) => ({
-      name,
-      brand,
-      category,
-      pagePosition: Scrapper.articleList.indexOf(number) + 1,
-      articlesCount: Scrapper.articlesCount,
+    const numbersPositions = numbers.map((number) => ({
       number,
-      keyword,
-      owner,
-      ownerClient,
-      ownerArticle,
+      pagePosition: Scrapper.articleList.indexOf(number) + 1,
     }));
     if (status === 'Product not found') {
-      const articlePositionWithError = articlePositions.map((position) => ({ ...position, error: 'No item was found for this keyword' }));
-      return articlePositionWithError;
+      return numbersPositions.map((position) => ({ ...position, error: 'No item was found for this keyword' }));
     }
     if (status === 'Failed to open the page') {
-      const articlePositionWithError = articlePositions.map((position) => ({ ...position, error: 'Search error' }));
-      return articlePositionWithError;
+      return numbersPositions.map((position) => ({ ...position, error: 'Search error' }));
     }
     if (Scrapper.pageNumber > 20) {
-      const articlePositionWithError = articlePositions.map((position) => ({ ...position, error: 'Page limit' }));
-      return articlePositionWithError;
+      return numbersPositions.map((position) => ({ ...position, error: 'Page limit' }));
     }
-    const isSearchOver = articlePositions.map((e) => e.pagePosition)
+    const isSearchOver = numbersPositions.map((e) => e.pagePosition)
       .indexOf(0) === -1;
     if (!isSearchOver) {
       Scrapper.pageNumber += 1;
-      const addArticlePositions = await this.searchNumbersPosition(article);
-      return addArticlePositions;
+      const searchNextPage = await this.searchNumbersPosition(keyword, numbers);
+      return searchNextPage;
     }
-    return articlePositions;
+    return numbersPositions;
   }
 
   static async close() {
     await Scrapper.browser.close();
   }
 
-  static async searchArticle(article) {
-    const {
-      name,
-      brand = 'not',
-      category = 'not',
-      numbers,
-      keywords,
-      owner,
-      ownerClient,
-      _id,
-    } = article;
+  static async searchPositions(numbers, keywords) {
     Scrapper.pageNumber = 1;
     await this.init();
-    const articleSearchResult = [];
+    const keywordsPositionsResults = [];
     /* eslint-disable-next-line */
     for (const keyword of keywords) {
       Scrapper.pageNumber = 1;
       Scrapper.articleList = [];
       Scrapper.articlesCount = 'Not found';
       /* eslint-disable no-await-in-loop */
-      const articlePositions = await this.searchNumbersPosition({
-        name,
-        brand,
-        category,
-        numbers,
+      const numbersPositions = await this.searchNumbersPosition(keyword, numbers);
+      const keywordPosition = {
         keyword,
-        owner,
-        ownerClient,
-        ownerArticle: _id,
-      });
-      articleSearchResult.push(...articlePositions);
+        articlesCount: Scrapper.articlesCount,
+        numbers: numbersPositions,
+      };
+      keywordsPositionsResults.push(keywordPosition);
     }
     await this.close();
-    return articleSearchResult;
+    return keywordsPositionsResults;
   }
 
   static async searchArticleRating(article) {
@@ -186,12 +146,12 @@ module.exports = class Scrapper {
       await Scrapper.page.mouse.wheel({ deltaY: 3500 });
       await Scrapper.page.waitForTimeout(1000);
       await Scrapper.page.waitForSelector('.user-scores__score', { timeout: 10000 });
-      await Scrapper.page.waitForTimeout(2000);
-      const newRating = await Scrapper.page.evaluate(() => document.querySelector('.user-scores__score').textContent);
-      const newReviewsCount = await Scrapper.page.evaluate(() => {
+      await Scrapper.page.waitForTimeout(3000);
+      const { newRating, newReviewsCount } = await Scrapper.page.evaluate(() => {
         const reviewsText = document.querySelector('.user-scores__text').textContent;
-        const reviews = parseInt(reviewsText.replace(/[^\d]/g, ''), 10);
-        return reviews;
+        const reviewsCountResult = parseInt(reviewsText.replace(/[^\d]/g, ''), 10);
+        const ratingResult = document.querySelector('.user-scores__score').textContent;
+        return { newRating: ratingResult, newReviewsCount: reviewsCountResult };
       });
       return { rating: newRating, reviewsCount: newReviewsCount };
     } catch (error) {

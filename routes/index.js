@@ -5,7 +5,6 @@ const authMiddleware = require('../middlewares/auth');
 const userRouter = require('./users');
 const clientRouter = require('./clients');
 const articleRouter = require('./articles');
-const reportsRouter = require('./reports');
 const {
   signUp,
   signIn,
@@ -21,7 +20,6 @@ Router.get('/', async (req, res) => {
   }
 });
 
-Router.use('/reports/', authMiddleware, reportsRouter);
 Router.use('/users/', authMiddleware, userRouter);
 Router.use('/clients/', authMiddleware, clientRouter);
 Router.use('/articles/', authMiddleware, articleRouter);

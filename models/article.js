@@ -43,6 +43,47 @@ const articleShema = new mongoose.Schema({
     maxlength: 50,
     default: '0',
   },
+  positions: [
+    {
+      date: {
+        type: Date,
+        required: true,
+        default: new Date(),
+      },
+      keywords: [
+        {
+          keyword: {
+            type: String,
+            required: true,
+            minlength: 2,
+            maxlength: 150,
+          },
+          articlesCount: {
+            type: String,
+            minlength: 1,
+            maxlength: 1000,
+          },
+          numbers: [
+            {
+              number: {
+                type: Number,
+                required: true,
+                minlength: 5,
+                maxlength: 10,
+              },
+              pagePosition: {
+                type: Number,
+                minlength: 1,
+                maxlength: 100,
+              },
+              error: {
+                type: String,
+                minlength: 2,
+                maxlength: 50,
+              },
+            }],
+        }],
+    }],
   owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'user',

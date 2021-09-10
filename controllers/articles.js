@@ -1,6 +1,5 @@
 const Article = require('../models/article');
 const Client = require('../models/clients');
-const Report = require('../models/report');
 
 const BadReqErr = require('../errors/bad-req-err');
 const ForbiddenErr = require('../errors/forbidden-err');
@@ -72,7 +71,6 @@ const deleteArticles = async (req, res, next) => {
     if (String(article.ownerClient) !== ownerClient) { return next(new ForbiddenErr('Артикул не принадлежит данному клиенту')); }
 
     const articleDelete = await Article.findByIdAndDelete(_id);
-    await Report.deleteMany({ ownerArticle: articleDelete._id });
     return res.send(articleDelete);
   } catch (err) {
     if (err.name === 'CastError') { return next(new BadReqErr('Передан некорректный _id клиента')); }
@@ -105,31 +103,6 @@ const updateArticles = async (req, res, next) => {
   } catch (err) {
     if (err.name === 'CastError') { return next(new BadReqErr('Переданы некорректные данные для обновления имени')); }
 
-    return next(err);
-  }
-};
-
-const updateRating = async (req, res, next) => {
-  try {
-    const articles = await Article.find({ });
-    const newArticles = [];
-    /* eslint-disable no-await-in-loop */
-    /* eslint-disable-next-line */
-    for (const article of articles) {
-      const { rating, reviewsCount } = await wbScrapper.searchArticleRating(article);
-      const newArticle = await Article.findByIdAndUpdate(
-        article._id,
-        { rating, reviewsCount },
-        {
-          new: true,
-          runValidators: true,
-        },
-      );
-
-      newArticles.push(newArticle);
-    }
-    return res.send(newArticles);
-  } catch (err) {
     return next(err);
   }
 };
@@ -177,8 +150,6 @@ const deleteNumber = async (req, res, next) => {
     );
 
     if (!article) { return next(new NotFoundErr('Такого артикула не существует')); }
-
-    await Report.deleteMany({ number, ownerArticle: _id });
 
     return res.send(article);
   } catch (err) {
@@ -232,12 +203,67 @@ const deleteKeyword = async (req, res, next) => {
 
     if (!article) { return next(new NotFoundErr('Такого артикула не существует')); }
 
-    await Report.deleteMany({ keyword, ownerArticle: _id });
-
     return res.send(article);
   } catch (err) {
     if (err.name === 'CastError') { return next(new BadReqErr('Переданы некорректные данные для добавления поисковых ключей')); }
 
+    return next(err);
+  }
+};
+
+const updatePosition = async (req, res, next) => {
+  try {
+    const articles = await Article.find({});
+    const date = new Date().toLocaleString();
+    /* eslint-disable no-await-in-loop */
+    /* eslint-disable-next-line */
+    for (const article of articles) {
+      const {
+        numbers,
+        keywords,
+      } = article;
+      const newKeywordsPositions = await wbScrapper.searchPositions(numbers, keywords);
+      const newPositions = {
+        date,
+        keywords: newKeywordsPositions,
+      };
+      await Article.findByIdAndUpdate(
+        article._id,
+        {
+          $push: {
+            positions: {
+              $each: [newPositions],
+              $position: 0,
+            },
+          },
+        },
+        { new: true },
+      );
+    }
+    return res.send('Success');
+  } catch (err) {
+    return next(err);
+  }
+};
+
+const updateRating = async (req, res, next) => {
+  try {
+    const articles = await Article.find({ });
+    /* eslint-disable no-await-in-loop */
+    /* eslint-disable-next-line */
+    for (const article of articles) {
+      const { rating, reviewsCount } = await wbScrapper.searchArticleRating(article);
+      await Article.findByIdAndUpdate(
+        article._id,
+        { rating, reviewsCount },
+        {
+          new: true,
+          runValidators: true,
+        },
+      );
+    }
+    return res.send('Success');
+  } catch (err) {
     return next(err);
   }
 };
@@ -253,4 +279,5 @@ module.exports = {
   deleteNumber,
   addKeyword,
   deleteKeyword,
+  updatePosition,
 };

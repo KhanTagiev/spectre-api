@@ -12,6 +12,7 @@ const {
   deleteNumber,
   addKeyword,
   deleteKeyword,
+  updatePosition,
 } = require('../controllers/articles');
 
 Router.get('/', getAllArticles);
@@ -51,7 +52,8 @@ Router.patch('/:clientId/:articleId/', celebrate({
   }),
 }), updateArticles);
 
-Router.post('/rating/update', updateRating);
+Router.post('/update/rating', updateRating);
+Router.post('/update/positions', updatePosition);
 
 Router.put('/:clientId/:articleId/numbers', celebrate({
   params: Joi.object().keys({
