@@ -12,6 +12,6 @@
         "ecmaVersion": 12
     },
     "rules": {
-        "no-underscore-dangle": [1, { "allow": ["_id"] }]
+        "no-underscore-dangle": [1, { "allow": ["_id", "_page", "_browser", "_pageNumber", "_articleList", "_isProductCard", "_articlesCount", "_updateArticlesList", "_searchNumbersPosition"] }]
     }
 }
