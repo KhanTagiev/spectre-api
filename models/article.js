@@ -71,7 +71,7 @@ const articleShema = new mongoose.Schema({
                 minlength: 5,
                 maxlength: 10,
               },
-              pagePosition: {
+              position: {
                 type: Number,
                 minlength: 1,
                 maxlength: 100,

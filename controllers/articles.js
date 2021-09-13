@@ -5,7 +5,7 @@ const BadReqErr = require('../errors/bad-req-err');
 const ForbiddenErr = require('../errors/forbidden-err');
 const NotFoundErr = require('../errors/not-found-err');
 const ConflictErr = require('../errors/conflict-err');
-const wbScrapper = require('../utils/wbScrapper');
+const Scrapper = require('../utils/scrapper');
 
 const getArticles = async (req, res, next) => {
   try {
@@ -215,6 +215,8 @@ const updatePosition = async (req, res, next) => {
   try {
     const articles = await Article.find({});
     const date = new Date().toLocaleString();
+    const scrapper = new Scrapper();
+    await scrapper.init();
     /* eslint-disable no-await-in-loop */
     /* eslint-disable-next-line */
     for (const article of articles) {
@@ -222,7 +224,7 @@ const updatePosition = async (req, res, next) => {
         numbers,
         keywords,
       } = article;
-      const newKeywordsPositions = await wbScrapper.searchPositions(numbers, keywords);
+      const newKeywordsPositions = await scrapper.searchPositions(numbers, keywords);
       const newPositions = {
         date,
         keywords: newKeywordsPositions,
@@ -240,6 +242,7 @@ const updatePosition = async (req, res, next) => {
         { new: true },
       );
     }
+    await scrapper.close();
     return res.send('Success');
   } catch (err) {
     return next(err);
@@ -249,10 +252,12 @@ const updatePosition = async (req, res, next) => {
 const updateRating = async (req, res, next) => {
   try {
     const articles = await Article.find({ });
+    const scrapper = new Scrapper();
+    await scrapper.init();
     /* eslint-disable no-await-in-loop */
     /* eslint-disable-next-line */
     for (const article of articles) {
-      const { rating, reviewsCount } = await wbScrapper.searchArticleRating(article);
+      const { rating, reviewsCount } = await scrapper.searchArticleRating(article);
       await Article.findByIdAndUpdate(
         article._id,
         { rating, reviewsCount },
@@ -262,6 +267,7 @@ const updateRating = async (req, res, next) => {
         },
       );
     }
+    await scrapper.close();
     return res.send('Success');
   } catch (err) {
     return next(err);
