@@ -1,4 +1,5 @@
 const Article = require('../models/article');
+const User = require('../models/user');
 const Client = require('../models/clients');
 
 const BadReqErr = require('../errors/bad-req-err');
@@ -23,8 +24,12 @@ const getArticles = async (req, res, next) => {
 const getAllArticles = async (req, res, next) => {
   try {
     const owner = req.user._id;
-    const articles = await Article.find({ owner }).sort('-date');
-
+    const user = await User.findById(owner);
+    let findConfig = { owner };
+    if (user.ROLE === 'CLIENT') {
+      findConfig = { ownerClient: user.clientId };
+    }
+    const articles = await Article.find(findConfig).sort('-date');
     return res.send(articles);
   } catch (err) { return next(err); }
 };

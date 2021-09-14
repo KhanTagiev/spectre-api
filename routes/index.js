@@ -2,11 +2,12 @@ const Router = require('express').Router();
 const { celebrate, Joi } = require('celebrate');
 
 const authMiddleware = require('../middlewares/auth');
+const authAdminMiddleware = require('../middlewares/authAdmin');
 const userRouter = require('./users');
 const clientRouter = require('./clients');
 const articleRouter = require('./articles');
+const adminRouter = require('./admin');
 const {
-  signUp,
   signIn,
   signOut,
 } = require('../controllers/users');
@@ -23,14 +24,7 @@ Router.get('/', async (req, res) => {
 Router.use('/users/', authMiddleware, userRouter);
 Router.use('/clients/', authMiddleware, clientRouter);
 Router.use('/articles/', authMiddleware, articleRouter);
-
-Router.post('/signup', celebrate({
-  body: Joi.object().keys({
-    email: Joi.string().required().email(),
-    password: Joi.string().required().min(8),
-    name: Joi.string().required().min(2).max(30),
-  }),
-}), signUp);
+Router.use('/admin/', authAdminMiddleware, adminRouter);
 
 Router.post('/signin', celebrate({
   body: Joi.object().keys({

@@ -1,5 +1,6 @@
 const Client = require('../models/clients');
 const Article = require('../models/article');
+const User = require('../models/user');
 
 const BadReqErr = require('../errors/bad-req-err');
 const ForbiddenErr = require('../errors/forbidden-err');
@@ -9,8 +10,12 @@ const ConflictErr = require('../errors/conflict-err');
 const getClients = async (req, res, next) => {
   try {
     const owner = req.user._id;
-    const clients = await Client.find({ owner }).sort('-date');
-
+    const user = await User.findById(owner);
+    let findConfig = { owner };
+    if (user.ROLE === 'CLIENT') {
+      findConfig = { _id: user.clientId };
+    }
+    const clients = await Client.find(findConfig).sort('-date');
     return res.send(clients);
   } catch (err) { return next(err); }
 };
