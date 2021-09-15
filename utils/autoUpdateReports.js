@@ -2,39 +2,53 @@ const cron = require('node-cron');
 const fs = require('fs');
 const Article = require('../models/article');
 const Scrapper = require('./scrapper');
+const { UPDATE_POSITIONS_STREAMS } = require('./constants');
 
 async function positionsUpdate() {
   try {
-    const articles = await Article.find({});
     const date = new Date().toLocaleString();
-    const scrapper = new Scrapper();
-    await scrapper.init();
-    /* eslint-disable no-await-in-loop */
-    /* eslint-disable-next-line */
-    for (const article of articles) {
-      const {
-        numbers,
-        keywords,
-      } = article;
-      const newKeywordsPositions = await scrapper.searchPositions(numbers, keywords);
-      const newPositions = {
-        date,
-        keywords: newKeywordsPositions,
-      };
-      await Article.findByIdAndUpdate(
-        article._id,
-        {
-          $push: {
-            positions: {
-              $each: [newPositions],
-              $position: 0,
+    const articlesArray = await Article.find({});
+    const arraySize = Math.ceil(articlesArray.length / UPDATE_POSITIONS_STREAMS);
+    const newArticles = articlesArray.reduce((a, b) => {
+      if (a[a.length - 1].length === arraySize) {
+        a.push([]);
+      }
+
+      a[a.length - 1].push(b);
+      return a;
+    }, [[]]);
+    // eslint-disable-next-line no-inner-declarations
+    async function articlesUpdate(articles) {
+      const scrapper = new Scrapper();
+      await scrapper.init();
+      /* eslint-disable no-await-in-loop */
+      /* eslint-disable-next-line */
+      for (const article of articles) {
+        const {
+          numbers,
+          keywords,
+        } = article;
+        const newKeywordsPositions = await scrapper.searchPositions(numbers, keywords);
+        const newPositions = {
+          date,
+          keywords: newKeywordsPositions,
+        };
+        await Article.findByIdAndUpdate(
+          article._id,
+          {
+            $push: {
+              positions: {
+                $each: [newPositions],
+                $position: 0,
+              },
             },
           },
-        },
-        { new: true },
-      );
+          { new: true },
+        );
+      }
+      await scrapper.close();
     }
-    await scrapper.close();
+    newArticles.forEach((articles) => articlesUpdate(articles));
   } catch (err) {
     fs.writeFileSync(`./logs/err/${new Date().toISOString()}—positions`, err.toString());
   }

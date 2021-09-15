@@ -7,6 +7,7 @@ const ForbiddenErr = require('../errors/forbidden-err');
 const NotFoundErr = require('../errors/not-found-err');
 const ConflictErr = require('../errors/conflict-err');
 const Scrapper = require('../utils/scrapper');
+const { UPDATE_POSITIONS_STREAMS } = require('../utils/constants');
 
 const getArticles = async (req, res, next) => {
   try {
@@ -218,36 +219,49 @@ const deleteKeyword = async (req, res, next) => {
 
 const updatePosition = async (req, res, next) => {
   try {
-    const articles = await Article.find({});
     const date = new Date().toLocaleString();
-    const scrapper = new Scrapper();
-    await scrapper.init();
-    /* eslint-disable no-await-in-loop */
-    /* eslint-disable-next-line */
-    for (const article of articles) {
-      const {
-        numbers,
-        keywords,
-      } = article;
-      const newKeywordsPositions = await scrapper.searchPositions(numbers, keywords);
-      const newPositions = {
-        date,
-        keywords: newKeywordsPositions,
-      };
-      await Article.findByIdAndUpdate(
-        article._id,
-        {
-          $push: {
-            positions: {
-              $each: [newPositions],
-              $position: 0,
+    const articlesArray = await Article.find({});
+    const arraySize = Math.ceil(articlesArray.length / UPDATE_POSITIONS_STREAMS);
+    const newArticles = articlesArray.reduce((a, b) => {
+      if (a[a.length - 1].length === arraySize) {
+        a.push([]);
+      }
+
+      a[a.length - 1].push(b);
+      return a;
+    }, [[]]);
+    // eslint-disable-next-line no-inner-declarations
+    async function articlesUpdate(articles) {
+      const scrapper = new Scrapper();
+      await scrapper.init();
+      /* eslint-disable no-await-in-loop */
+      /* eslint-disable-next-line */
+      for (const article of articles) {
+        const {
+          numbers,
+          keywords,
+        } = article;
+        const newKeywordsPositions = await scrapper.searchPositions(numbers, keywords);
+        const newPositions = {
+          date,
+          keywords: newKeywordsPositions,
+        };
+        await Article.findByIdAndUpdate(
+          article._id,
+          {
+            $push: {
+              positions: {
+                $each: [newPositions],
+                $position: 0,
+              },
             },
           },
-        },
-        { new: true },
-      );
+          { new: true },
+        );
+      }
+      await scrapper.close();
     }
-    await scrapper.close();
+    newArticles.forEach((articles) => articlesUpdate(articles));
     return res.send('Success');
   } catch (err) {
     return next(err);
