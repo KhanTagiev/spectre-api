@@ -30,6 +30,9 @@ const getAllArticles = async (req, res, next) => {
     if (user.ROLE === 'CLIENT') {
       findConfig = { ownerClient: user.clientId };
     }
+    if (user.ROLE === 'ADMIN') {
+      findConfig = { };
+    }
     const articles = await Article.find(findConfig).sort('-date');
     return res.send(articles);
   } catch (err) { return next(err); }
