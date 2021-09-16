@@ -5,6 +5,7 @@ const {
   signUp,
   changeRole,
 } = require('../controllers/users');
+const { updateOwnerClient } = require('../controllers/clients');
 
 Router.post('/users/signup', celebrate({
   body: Joi.object().keys({
@@ -22,5 +23,14 @@ Router.patch('/users/role', celebrate({
     userId: Joi.string().required().hex().length(24),
   }),
 }), changeRole);
+
+Router.patch('/clients/:clientId', celebrate({
+  params: Joi.object().keys({
+    clientId: Joi.string().hex().length(24),
+  }).unknown(true),
+  body: Joi.object().keys({
+    newOwner: Joi.string().required().hex().length(24),
+  }),
+}), updateOwnerClient);
 
 module.exports = Router;

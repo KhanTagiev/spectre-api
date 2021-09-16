@@ -47,7 +47,10 @@ const deleteClient = async (req, res, next) => {
     const _id = req.params.clientId;
     const client = await Client.findById(_id);
     if (!client) { return next(new NotFoundErr('Клиент с указанным _id не найден')); }
-    if (String(client.owner) !== owner) { return next(new ForbiddenErr('Клиент добавлен не вами')); }
+    const user = await User.findById(owner);
+    if (user.ROLE !== 'ADMIN') {
+      if (String(client.owner) !== owner) { return next(new ForbiddenErr('Клиент добавлен не вами')); }
+    }
 
     const clientDelete = await Client.findByIdAndDelete(_id);
     await Article.deleteMany({ ownerClient: clientDelete._id });
@@ -59,8 +62,36 @@ const deleteClient = async (req, res, next) => {
   }
 };
 
+const updateOwnerClient = async (req, res, next) => {
+  try {
+    const _id = req.params.clientId;
+    const { newOwner } = req.body;
+    const client = await Client.findByIdAndUpdate(
+      _id,
+      { owner: newOwner },
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
+    if (!client) {
+      return next(new NotFoundErr('Клиент с указанным _id не найден'));
+    }
+    await Article.updateMany({ ownerClient: _id }, { owner: newOwner });
+
+    return res.send(client);
+  } catch (err) {
+    if (err.name === 'CastError') {
+      return next(new BadReqErr('Передан некорректный _id пользователя'));
+    }
+
+    return next(err);
+  }
+};
+
 module.exports = {
   getClients,
   addClient,
   deleteClient,
+  updateOwnerClient,
 };
