@@ -49,10 +49,19 @@ const addArticles = async (req, res, next) => {
 
     const client = await Client.findById(ownerClient);
     if (!client) { return next(new NotFoundErr('Нет клиента с указанным _id')); }
-    if (String(client.owner) !== owner) { return next(new ForbiddenErr('Это не ваш клиент')); }
-
+    const user = await User.findById(owner);
+    if (user.ROLE !== 'ADMIN') {
+      if (String(client.owner) !== owner) { return next(new ForbiddenErr('Это не ваш клиент')); }
+    }
     const article = new Article({
-      name, brand, category, numbers, keywords, owner, ownerClient, date,
+      name,
+      brand,
+      category,
+      numbers,
+      keywords: keywords.map((key) => ({ keyword: key })),
+      owner,
+      ownerClient,
+      date,
     });
     await article.save();
     return res.send(article);
@@ -73,8 +82,10 @@ const deleteArticles = async (req, res, next) => {
     const _id = req.params.articleId;
     const client = await Client.findById(ownerClient);
     if (!client) { return next(new NotFoundErr('Нет клиента с указанным _id')); }
-    if (String(client.owner) !== owner) { return next(new ForbiddenErr('Это не ваш клиент')); }
-
+    const user = await User.findById(owner);
+    if (user.ROLE !== 'ADMIN') {
+      if (String(client.owner) !== owner) { return next(new ForbiddenErr('Это не ваш клиент')); }
+    }
     const article = await Article.findById(_id);
     if (!article) { return next(new NotFoundErr('Такого артикула не существует')); }
     if (String(article.ownerClient) !== ownerClient) { return next(new ForbiddenErr('Артикул не принадлежит данному клиенту')); }
@@ -97,7 +108,10 @@ const updateArticles = async (req, res, next) => {
 
     const client = await Client.findById(ownerClient);
     if (!client) { return next(new NotFoundErr('Нет клиента с указанным _id')); }
-    if (String(client.owner) !== owner) { return next(new ForbiddenErr('Это не ваш клиент')); }
+    const user = await User.findById(owner);
+    if (user.ROLE !== 'ADMIN') {
+      if (String(client.owner) !== owner) { return next(new ForbiddenErr('Это не ваш клиент')); }
+    }
     const article = await Article.findByIdAndUpdate(
       _id,
       { name, brand, category },
@@ -122,10 +136,12 @@ const addNumbers = async (req, res, next) => {
     const ownerClient = req.params.clientId;
     const _id = req.params.articleId;
     const { numbers } = req.body;
-
     const client = await Client.findById(ownerClient);
     if (!client) { return next(new NotFoundErr('Нет клиента с указанным _id')); }
-    if (String(client.owner) !== owner) { return next(new ForbiddenErr('Это не ваш клиент')); }
+    const user = await User.findById(owner);
+    if (user.ROLE !== 'ADMIN') {
+      if (String(client.owner) !== owner) { return next(new ForbiddenErr('Это не ваш клиент')); }
+    }
     const article = await Article.findByIdAndUpdate(
       _id,
       { $addToSet: { numbers } },
@@ -148,10 +164,12 @@ const deleteNumber = async (req, res, next) => {
     const ownerClient = req.params.clientId;
     const _id = req.params.articleId;
     const { number } = req.body;
-
     const client = await Client.findById(ownerClient);
     if (!client) { return next(new NotFoundErr('Нет клиента с указанным _id')); }
-    if (String(client.owner) !== owner) { return next(new ForbiddenErr('Это не ваш клиент')); }
+    const user = await User.findById(owner);
+    if (user.ROLE !== 'ADMIN') {
+      if (String(client.owner) !== owner) { return next(new ForbiddenErr('Это не ваш клиент')); }
+    }
     const article = await Article.findByIdAndUpdate(
       _id,
       { $pull: { numbers: number } },
@@ -177,10 +195,17 @@ const addKeyword = async (req, res, next) => {
 
     const client = await Client.findById(ownerClient);
     if (!client) { return next(new NotFoundErr('Нет клиента с указанным _id')); }
-    if (String(client.owner) !== owner) { return next(new ForbiddenErr('Это не ваш клиент')); }
+    const user = await User.findById(owner);
+    if (user.ROLE !== 'ADMIN') {
+      if (String(client.owner) !== owner) { return next(new ForbiddenErr('Это не ваш клиент')); }
+    }
     const article = await Article.findByIdAndUpdate(
       _id,
-      { $addToSet: { keywords } },
+      {
+        $addToSet: {
+          keywords: keywords.map((key) => ({ keyword: key })),
+        },
+      },
       { new: true },
     );
 
@@ -203,10 +228,13 @@ const deleteKeyword = async (req, res, next) => {
 
     const client = await Client.findById(ownerClient);
     if (!client) { return next(new NotFoundErr('Нет клиента с указанным _id')); }
-    if (String(client.owner) !== owner) { return next(new ForbiddenErr('Это не ваш клиент')); }
+    const user = await User.findById(owner);
+    if (user.ROLE !== 'ADMIN') {
+      if (String(client.owner) !== owner) { return next(new ForbiddenErr('Это не ваш клиент')); }
+    }
     const article = await Article.findByIdAndUpdate(
       _id,
-      { $pull: { keywords: keyword } },
+      { $pull: { keywords: { keyword } } },
       { new: true },
     );
 
@@ -215,6 +243,37 @@ const deleteKeyword = async (req, res, next) => {
     return res.send(article);
   } catch (err) {
     if (err.name === 'CastError') { return next(new BadReqErr('Переданы некорректные данные для добавления поисковых ключей')); }
+
+    return next(err);
+  }
+};
+
+const updateKeywordInWork = async (req, res, next) => {
+  try {
+    const owner = req.user._id;
+    const ownerClient = req.params.clientId;
+    const _id = req.params.articleId;
+    const { keyword, isInWork } = req.body;
+
+    const client = await Client.findById(ownerClient);
+    if (!client) { return next(new NotFoundErr('Нет клиента с указанным _id')); }
+    const user = await User.findById(owner);
+    if (user.ROLE !== 'ADMIN') {
+      if (String(client.owner) !== owner) { return next(new ForbiddenErr('Это не ваш клиент')); }
+    }
+    const article = await Article.findOneAndUpdate(
+      { _id, 'keywords.keyword': keyword },
+      { $set: { 'keywords.$.isInWork': isInWork } },
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
+    if (!article) { return next(new NotFoundErr('Такого артикула не существует')); }
+
+    return res.send(article);
+  } catch (err) {
+    if (err.name === 'CastError') { return next(new BadReqErr('Переданы некорректные данные для обновления имени')); }
 
     return next(err);
   }
@@ -305,6 +364,7 @@ module.exports = {
   updateRating,
   addNumbers,
   deleteNumber,
+  updateKeywordInWork,
   addKeyword,
   deleteKeyword,
   updatePosition,

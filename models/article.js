@@ -26,10 +26,17 @@ const articleShema = new mongoose.Schema({
     maxlength: 10,
   }],
   keywords: [{
-    type: String,
-    required: true,
-    minlength: 2,
-    maxlength: 150,
+    keyword: {
+      type: String,
+      required: true,
+      minlength: 2,
+      maxlength: 150,
+    },
+    isInWork: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
   }],
   rating: {
     type: String,
@@ -57,6 +64,11 @@ const articleShema = new mongoose.Schema({
             required: true,
             minlength: 2,
             maxlength: 150,
+          },
+          isInWork: {
+            type: Boolean,
+            required: true,
+            default: false,
           },
           articlesCount: {
             type: String,

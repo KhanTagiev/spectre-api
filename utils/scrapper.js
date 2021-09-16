@@ -137,14 +137,15 @@ class Scrapper {
     this._pageNumber = 1;
     const keywordsPositionsResults = [];
     /* eslint-disable-next-line */
-    for (const keyword of keywords) {
+    for (const key of keywords) {
       this._pageNumber = 1;
       this._articleList = [];
       this._articlesCount = '—';
       /* eslint-disable no-await-in-loop */
-      const numbersPositions = await this._searchNumbersPosition(keyword, numbers);
+      const numbersPositions = await this._searchNumbersPosition(key.keyword, numbers);
       const keywordPosition = {
-        keyword,
+        keyword: key.keyword,
+        isInWork: key.isInWork,
         articlesCount: this._articlesCount,
         numbers: numbersPositions,
       };

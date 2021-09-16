@@ -10,6 +10,7 @@ const {
   updateRating,
   addNumbers,
   deleteNumber,
+  updateKeywordInWork,
   addKeyword,
   deleteKeyword,
   updatePosition,
@@ -94,5 +95,16 @@ Router.delete('/:clientId/:articleId/keys', celebrate({
     keyword: Joi.string().required().min(2).max(150),
   }),
 }), deleteKeyword);
+
+Router.patch('/:clientId/:articleId/keys', celebrate({
+  params: Joi.object().keys({
+    clientId: Joi.string().hex().length(24),
+    articleId: Joi.string().hex().length(24),
+  }).unknown(true),
+  body: Joi.object().keys({
+    keyword: Joi.string().required().min(2).max(150),
+    isInWork: Joi.boolean().required(),
+  }),
+}), updateKeywordInWork);
 
 module.exports = Router;
