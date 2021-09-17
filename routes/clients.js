@@ -5,6 +5,7 @@ const {
   getClients,
   addClient,
   deleteClient,
+  updateClient,
 } = require('../controllers/clients');
 
 Router.get('/', getClients);
@@ -18,5 +19,13 @@ Router.delete('/:clientId', celebrate({
     clientId: Joi.string().hex().length(24),
   }).unknown(true),
 }), deleteClient);
+Router.patch('/:clientId', celebrate({
+  params: Joi.object().keys({
+    clientId: Joi.string().hex().length(24),
+  }).unknown(true),
+  body: Joi.object().keys({
+    name: Joi.string().required().min(2).max(50),
+  }),
+}), updateClient);
 
 module.exports = Router;

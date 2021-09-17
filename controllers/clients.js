@@ -62,6 +62,33 @@ const deleteClient = async (req, res, next) => {
   }
 };
 
+const updateClient = async (req, res, next) => {
+  try {
+    const owner = req.user._id;
+    const _id = req.params.clientId;
+    const { name } = req.body;
+    const client = await Client.findById(_id);
+    if (!client) { return next(new NotFoundErr('Нет клиента с указанным _id')); }
+    const user = await User.findById(owner);
+    if (user.ROLE !== 'ADMIN') {
+      if (String(client.owner) !== owner) { return next(new ForbiddenErr('Это не ваш клиент')); }
+    }
+    const upClient = await Client.findByIdAndUpdate(
+      _id,
+      { name },
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
+    return res.send(upClient);
+  } catch (err) {
+    if (err.name === 'CastError') { return next(new BadReqErr('Переданы некорректные данные для обновления имени')); }
+
+    return next(err);
+  }
+};
+
 const updateOwnerClient = async (req, res, next) => {
   try {
     const _id = req.params.clientId;
@@ -93,5 +120,6 @@ module.exports = {
   getClients,
   addClient,
   deleteClient,
+  updateClient,
   updateOwnerClient,
 };
