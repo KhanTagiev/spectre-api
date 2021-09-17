@@ -69,7 +69,7 @@ const addArticles = async (req, res, next) => {
     if (err.name === 'ValidationError') { return next(new BadReqErr('Переданы некорректные данные для добавления артикула')); }
 
     if (err.name === 'MongoError' && err.code === 11000) {
-      return next(new ConflictErr('Пользователь с таким Email уже существует'));
+      return next(new ConflictErr('СКУ с такими данными уже существует'));
     }
     return next(err);
   }

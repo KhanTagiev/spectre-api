@@ -35,7 +35,7 @@ const addClient = async (req, res, next) => {
     if (err.name === 'ValidationError') { return next(new BadReqErr('Переданы некорректные данные для добавления фильма')); }
 
     if (err.name === 'MongoError' && err.code === 11000) {
-      return next(new ConflictErr('Пользователь с таким Email уже существует'));
+      return next(new ConflictErr('Клиент с таким именем уже существует'));
     }
     return next(err);
   }
