@@ -11,9 +11,12 @@ const ALLOWED_CORS = [
   'https://spectre-crm.ru',
   'https://www.spectre-crm.ru',
   'http://localhost:3000',
+  'http://localhost:3001',
 ];
 
 const DEFAULT_ALLOWED_METHODS = 'GET,HEAD,PUT,PATCH,POST,DELETE';
+
+const UPDATE_POSITIONS_STREAMS = 3;
 
 module.exports = {
   ERR_CODE_BAD_REQ,
@@ -25,4 +28,5 @@ module.exports = {
   SECRET_CODE,
   ALLOWED_CORS,
   DEFAULT_ALLOWED_METHODS,
+  UPDATE_POSITIONS_STREAMS,
 };

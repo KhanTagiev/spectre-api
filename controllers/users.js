@@ -12,12 +12,14 @@ const { SECRET_CODE } = require('../utils/constants');
 
 const signUp = async (req, res, next) => {
   try {
-    const { email, password, name } = req.body;
+    const {
+      email, password, name, ROLE = 'USER', clientId,
+    } = req.body;
 
     const hashedPassword = bcrypt.hashSync(password, 12);
 
     const user = new User({
-      email, password: hashedPassword, name, ROLE: 'USER',
+      email, password: hashedPassword, name, ROLE, clientId,
     });
 
     await user.save();
@@ -119,10 +121,34 @@ const updateUserProfile = async (req, res, next) => {
   }
 };
 
+const changeRole = async (req, res, next) => {
+  try {
+    const { userId, ROLE } = req.body;
+    const user = await User.findByIdAndUpdate(userId, { ROLE }, {
+      new: true,
+      runValidators: true,
+    });
+    if (!user) {
+      return next(new NotFoundErr('Пользователь не найден'));
+    }
+
+    return res.send(user);
+  } catch (err) {
+    if (err.name === 'MongoError' && err.code === 11000) {
+      return next(new ConflictErr('Данный Email уже занят другим пользователем'));
+    }
+    if (err.name === 'ValidationError') {
+      return next(new BadReqErr('Переданы некорректные данные для обновления профиля пользователя'));
+    }
+    return next(err);
+  }
+};
+
 module.exports = {
   signUp,
   signIn,
   signOut,
   getUserProfile,
   updateUserProfile,
+  changeRole,
 };

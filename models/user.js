@@ -27,7 +27,12 @@ const userShema = new mongoose.Schema({
   ROLE: {
     type: String,
     required: true,
-    enum: ['ADMIN', 'USER'],
+    enum: ['ADMIN', 'USER', 'CLIENT'],
+  },
+  clientId: {
+    type: mongoose.Schema.Types.ObjectId,
+    minlength: 24,
+    maxlength: 24,
   },
 });
 
