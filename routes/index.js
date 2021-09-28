@@ -3,10 +3,13 @@ const { celebrate, Joi } = require('celebrate');
 
 const authMiddleware = require('../middlewares/auth');
 const authAdminMiddleware = require('../middlewares/authAdmin');
+
 const userRouter = require('./users');
 const clientRouter = require('./clients');
 const articleRouter = require('./articles');
+const purchaseRouter = require('./purchases');
 const adminRouter = require('./admin');
+
 const {
   signIn,
   signOut,
@@ -24,6 +27,7 @@ Router.get('/', async (req, res) => {
 Router.use('/users/', authMiddleware, userRouter);
 Router.use('/clients/', authMiddleware, clientRouter);
 Router.use('/articles/', authMiddleware, articleRouter);
+Router.use('/purchases/', authMiddleware, purchaseRouter);
 Router.use('/admin/', authAdminMiddleware, adminRouter);
 
 Router.post('/signin', celebrate({

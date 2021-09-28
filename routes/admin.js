@@ -12,14 +12,14 @@ Router.post('/users/signup', celebrate({
     email: Joi.string().required().email(),
     password: Joi.string().required().min(8),
     name: Joi.string().required().min(2).max(50),
-    ROLE: Joi.string().valid('ADMIN', 'USER', 'CLIENT'),
+    ROLE: Joi.string().valid('ADMIN', 'USER', 'PURCHASER', 'CLIENT'),
     clientId: Joi.string().hex().length(24),
   }),
 }), signUp);
 
 Router.patch('/users/role', celebrate({
   body: Joi.object().keys({
-    ROLE: Joi.string().required().valid('ADMIN', 'USER', 'CLIENT'),
+    ROLE: Joi.string().required().valid('ADMIN', 'USER', 'PURCHASER', 'CLIENT'),
     userId: Joi.string().required().hex().length(24),
   }),
 }), changeRole);

@@ -27,7 +27,7 @@ const userShema = new mongoose.Schema({
   ROLE: {
     type: String,
     required: true,
-    enum: ['ADMIN', 'USER', 'CLIENT'],
+    enum: ['ADMIN', 'USER', 'PURCHASER', 'CLIENT'],
   },
   clientId: {
     type: mongoose.Schema.Types.ObjectId,
