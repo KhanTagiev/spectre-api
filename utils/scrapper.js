@@ -56,7 +56,10 @@ class Scrapper {
       }
     }
 
-    function returnArticlesInfo() {
+    const {
+      articlesList,
+      count,
+    } = await this._page.evaluate((articlesCount) => {
       let articlesCard;
       articlesCard = Array.from(document.body.querySelector('#catalog-content')
         .querySelectorAll('.product-card'));
@@ -65,28 +68,27 @@ class Scrapper {
           .querySelectorAll('.dtList'));
       }
 
-      const articlesList = articlesCard.map((element) => {
+      const articlesListData = articlesCard.map((element) => {
         if (element.dataset.popupNmId === undefined) {
           return Number(element.dataset.nmId);
         }
         return Number(element.dataset.popupNmId);
       });
-      const count = document.body.querySelector('.goods-count').children[0].textContent;
+      let countData = articlesCount;
+      if (countData === '—') {
+        countData = document.body.querySelector('.goods-count').children[0].textContent;
+      }
 
       return {
-        articlesList,
-        count,
+        articlesList: articlesListData,
+        count: countData,
       };
-    }
-
-    const {
-      articlesList,
-      count,
-    } = await this._page.evaluate(returnArticlesInfo);
+    }, this._articlesCount);
     this._articleList.push(...articlesList);
-
     if (typeof (count) === 'string') {
-      this._articlesCount = count;
+      if (this._articlesCount === '—') {
+        this._articlesCount = count;
+      }
     }
 
     return 'Success';
