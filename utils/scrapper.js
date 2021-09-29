@@ -35,19 +35,16 @@ class Scrapper {
   async _updateArticlesList(keyword) {
     const pageURL = `https://www.wildberries.ru/catalog/0/search.aspx?search=${keyword}&page=${this._pageNumber}`;
     try {
+      await this._page.setDefaultNavigationTimeout(0);
       await this._page.goto(pageURL, { waitUntil: 'networkidle0' });
       await this._page.waitForTimeout(1000);
     } catch (error) {
-      fs.writeFileSync(`./logs/err/${new Date().toISOString()}—positions`, error.toString());
+      fs.writeFileSync(`./logs/err/${new Date().toISOString()}—goto`, error.toString());
       return 'Failed to open the page';
     }
 
     try {
       await this._page.waitForSelector('#catalog-content .product-card', { timeout: 10000 });
-      if (this._articlesCount === '—') {
-        await this._page.waitForSelector('.goods-count', { timeout: 10000 });
-      }
-      await this._page.content();
       this._isProductCard = true;
     } catch (error) {
       this._isProductCard = false;
@@ -56,14 +53,19 @@ class Scrapper {
     if (!this._isProductCard) {
       try {
         await this._page.waitForSelector('#catalog-content .dtList', { timeout: 10000 });
-        if (this._articlesCount === '—') {
-          await this._page.waitForSelector('.goods-count', { timeout: 10000 });
-        }
-        await this._page.content();
       } catch (error) {
         return 'Product not found';
       }
     }
+
+    if (this._articlesCount === '—') {
+      try {
+        await this._page.waitForSelector('.goods-count', { timeout: 0 });
+      } catch (error) {
+        fs.writeFileSync(`./logs/err/${new Date().toISOString()}—articles-count`, error.toString());
+      }
+    }
+    await this._page.content();
 
     const {
       articlesList,
