@@ -1,4 +1,5 @@
 const puppeteer = require('puppeteer');
+const fs = require('fs');
 
 const { NODE_ENV } = process.env;
 
@@ -10,6 +11,7 @@ class Scrapper {
     this._articleList = [];
     this._isProductCard = false;
     this._articlesCount = '—';
+    this._repeatCount = 0;
   }
 
   async init() {
@@ -36,11 +38,15 @@ class Scrapper {
       await this._page.goto(pageURL, { waitUntil: 'networkidle0' });
       await this._page.waitForTimeout(1000);
     } catch (error) {
+      fs.writeFileSync(`./logs/err/${new Date().toISOString()}—positions`, error.toString());
       return 'Failed to open the page';
     }
 
     try {
       await this._page.waitForSelector('#catalog-content .product-card', { timeout: 10000 });
+      if (this._articlesCount === '—') {
+        await this._page.waitForSelector('.goods-count', { timeout: 10000 });
+      }
       await this._page.content();
       this._isProductCard = true;
     } catch (error) {
@@ -50,6 +56,9 @@ class Scrapper {
     if (!this._isProductCard) {
       try {
         await this._page.waitForSelector('#catalog-content .dtList', { timeout: 10000 });
+        if (this._articlesCount === '—') {
+          await this._page.waitForSelector('.goods-count', { timeout: 10000 });
+        }
         await this._page.content();
       } catch (error) {
         return 'Product not found';
@@ -107,6 +116,11 @@ class Scrapper {
       }));
     }
     if (status === 'Failed to open the page') {
+      if (this._repeatCount < 3) {
+        this._repeatCount += 1;
+        const searchNextPage = await this._searchNumbersPosition(keyword, numbers);
+        return searchNextPage;
+      }
       return numbersPositions.map((position) => ({
         ...position,
         error: 'Search error',
@@ -143,6 +157,7 @@ class Scrapper {
       this._pageNumber = 1;
       this._articleList = [];
       this._articlesCount = '—';
+      this._repeatCount += 0;
       /* eslint-disable no-await-in-loop */
       const numbersPositions = await this._searchNumbersPosition(key.keyword, numbers);
       const keywordPosition = {
