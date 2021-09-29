@@ -3,7 +3,6 @@ const fs = require('fs');
 const Article = require('../models/article');
 const Scrapper = require('./scrapper');
 const { UPDATE_POSITIONS_STREAMS } = require('./constants');
-const Purchase = require('../models/purchase');
 
 async function positionsUpdate() {
   try {
@@ -55,36 +54,6 @@ async function positionsUpdate() {
   }
 }
 
-async function purchaseListCreate(article) {
-  try {
-    const {
-      name, keywords, numbers, owner, ownerClient, _id,
-    } = article;
-    const purchaseList = keywords.filter((key) => key.isInWork === true)
-      .map((item) => ({ keyword: item.keyword, keywordId: item._id }));
-    const purchase = new Purchase({
-      articleName: name,
-      purchaseList,
-      articleNumbers: numbers,
-      owner,
-      ownerClient,
-      ownerArticle: _id,
-    });
-    await purchase.save();
-  } catch (err) {
-    fs.writeFileSync(`./logs/err/${new Date().toISOString()}—purchase-list`, err.toString());
-  }
-}
-
-async function purchasesListCreate() {
-  try {
-    const articles = await Article.find({}).sort('-date');
-    articles.forEach((article) => purchaseListCreate(article));
-  } catch (err) {
-    fs.writeFileSync(`./logs/err/${new Date().toISOString()}—purchases-list`, err.toString());
-  }
-}
-
 async function ratingUpdate() {
   try {
     const articles = await Article.find({ });
@@ -110,11 +79,6 @@ async function ratingUpdate() {
 }
 
 module.exports = cron.schedule('0 0 8,14,19,23 * * *', positionsUpdate, {
-  scheduled: true,
-  timezone: 'Europe/Moscow',
-});
-
-module.exports = cron.schedule('0 0 0 * * *', purchasesListCreate, {
   scheduled: true,
   timezone: 'Europe/Moscow',
 });
