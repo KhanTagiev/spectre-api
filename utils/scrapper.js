@@ -43,21 +43,6 @@ class Scrapper {
       return 'Failed to open the page';
     }
 
-    try {
-      await this._page.waitForSelector('#catalog-content .product-card', { timeout: 10000 });
-      this._isProductCard = true;
-    } catch (error) {
-      this._isProductCard = false;
-    }
-
-    if (!this._isProductCard) {
-      try {
-        await this._page.waitForSelector('#catalog-content .dtList', { timeout: 10000 });
-      } catch (error) {
-        return 'Product not found';
-      }
-    }
-
     if (this._articlesCount === '—') {
       try {
         await this._page.waitForSelector('.goods-count', { timeout: 0 });
@@ -65,6 +50,22 @@ class Scrapper {
         fs.writeFileSync(`./logs/err/${new Date().toISOString()}—articles-count`, error.toString());
       }
     }
+
+    try {
+      await this._page.waitForSelector('#catalog-content .product-card', { timeout: 50000 });
+      this._isProductCard = true;
+    } catch (error) {
+      this._isProductCard = false;
+    }
+
+    if (!this._isProductCard) {
+      try {
+        await this._page.waitForSelector('#catalog-content .dtList', { timeout: 50000 });
+      } catch (error) {
+        return 'Product not found';
+      }
+    }
+
     await this._page.content();
 
     const {
