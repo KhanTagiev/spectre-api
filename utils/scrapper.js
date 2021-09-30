@@ -45,23 +45,25 @@ class Scrapper {
 
     if (this._articlesCount === '—') {
       try {
-        await this._page.waitForSelector('.goods-count', { timeout: 0 });
+        await this._page.waitForSelector('.goods-count', { timeout: 120000 });
       } catch (error) {
         fs.writeFileSync(`./logs/err/${new Date().toISOString()}—articles-count`, error.toString());
       }
     }
 
     try {
-      await this._page.waitForSelector('#catalog-content .product-card', { timeout: 50000 });
+      await this._page.waitForSelector('#catalog-content .product-card', { timeout: 60000 });
       this._isProductCard = true;
     } catch (error) {
+      fs.writeFileSync(`./logs/err/${new Date().toISOString()}—product-card`, error.toString());
       this._isProductCard = false;
     }
 
     if (!this._isProductCard) {
       try {
-        await this._page.waitForSelector('#catalog-content .dtList', { timeout: 50000 });
+        await this._page.waitForSelector('#catalog-content .dtList', { timeout: 20000 });
       } catch (error) {
+        fs.writeFileSync(`./logs/err/${new Date().toISOString()}—dtList`, error.toString());
         return 'Product not found';
       }
     }
@@ -98,7 +100,7 @@ class Scrapper {
     }, this._articlesCount);
     this._articleList.push(...articlesList);
     if (typeof (count) === 'string') {
-      if (this._articlesCount === '—') {
+      if (count !== '—' && count !== '0') {
         this._articlesCount = count;
       }
     }

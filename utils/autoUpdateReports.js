@@ -19,11 +19,11 @@ async function positionsUpdate() {
     }, [[]]);
     // eslint-disable-next-line no-inner-declarations
     async function articlesUpdate(articles) {
+      const scrapper = new Scrapper();
+      await scrapper.init();
       /* eslint-disable no-await-in-loop */
       /* eslint-disable-next-line */
       for (const article of articles) {
-        const scrapper = new Scrapper();
-        await scrapper.init();
         const {
           numbers,
           keywords,
@@ -45,8 +45,8 @@ async function positionsUpdate() {
           },
           { new: true },
         );
-        await scrapper.close();
       }
+      await scrapper.close();
     }
     newArticles.forEach((articles) => articlesUpdate(articles));
   } catch (err) {
