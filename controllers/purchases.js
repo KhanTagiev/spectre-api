@@ -2,13 +2,14 @@ const Purchase = require('../models/purchase');
 const User = require('../models/user');
 
 const NotFoundErr = require('../errors/not-found-err');
+const ConflictErr = require('../errors/conflict-err');
 const BadReqErr = require('../errors/bad-req-err');
 const Client = require('../models/clients');
 
 const getLastPurchases = async (req, res, next) => {
   try {
     const owner = req.user._id;
-    const { daysAgo = 2 } = req.body;
+    const { ago = 2 } = req.headers;
     const user = await User.findById(owner);
     let findConfig = { owner };
     if (user.ROLE === 'CLIENT') {
@@ -19,7 +20,7 @@ const getLastPurchases = async (req, res, next) => {
     }
 
     const selectedDay = new Date();
-    selectedDay.setDate(selectedDay.getDate() - daysAgo);
+    selectedDay.setDate(selectedDay.getDate() - ago);
     selectedDay.setHours(0, 0, 0, 0);
 
     const purchases = (await Purchase.find(findConfig).sort({ date: 1 }))
@@ -42,7 +43,7 @@ const createNewPurchasesList = async (req, res, next) => {
     const { owner } = client;
 
     const findPurchases = await Purchase.findOne({ date, ownerClient });
-    if (findPurchases) { return next(new NotFoundErr('Список выкупов для данного клиента и на данную дату уже создан')); }
+    if (findPurchases) { return next(new ConflictErr('Список выкупов для данного клиента и на данную дату уже создан')); }
 
     const Purchases = new Purchase({ date, owner, ownerClient });
     await Purchases.save();
@@ -65,11 +66,14 @@ const addKeywordForPurchases = async (req, res, next) => {
     const client = await Client.findById(ownerClient);
     if (!client) { return next(new NotFoundErr('Нет клиента с указанным _id')); }
 
-    const findPurchase = await Purchase.findOne({ date, ownerClient });
-    if (!findPurchase) { return next(new NotFoundErr('Список выкупов не найден')); }
+    let findPurchase = await Purchase.findOne({ date, ownerClient });
+    if (!findPurchase) {
+      findPurchase = new Purchase({ date, owner, ownerClient });
+      await findPurchase.save();
+    }
     const isAddedKeyword = findPurchase.purchaseList
       .find((el) => String(el.keywordId) === String(keywordId));
-    if (isAddedKeyword) { return next(new NotFoundErr('Ключевое слово уже добавлено в список выкупов')); }
+    if (isAddedKeyword) { return next(new ConflictErr('Ключевое слово уже добавлено в список выкупов')); }
 
     const newPurchase = await Purchase.findByIdAndUpdate(findPurchase._id, {
       $addToSet: {

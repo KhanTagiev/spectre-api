@@ -15,7 +15,7 @@ const getClients = async (req, res, next) => {
     if (user.ROLE === 'CLIENT') {
       findConfig = { _id: user.clientId };
     }
-    if (user.ROLE === 'ADMIN') {
+    if (user.ROLE === 'ADMIN' || user.ROLE === 'PURCHASER') {
       findConfig = { };
     }
     const clients = await Client.find(findConfig).sort('-date');
