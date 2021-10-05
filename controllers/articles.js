@@ -34,7 +34,16 @@ const getAllArticles = async (req, res, next) => {
       findConfig = { };
     }
     const articles = await Article.find(findConfig).sort('-date');
-    return res.send(articles);
+    const selectedDay = new Date();
+    selectedDay.setDate(selectedDay.getDate() - 7);
+    selectedDay.setHours(0, 0, 0, 0);
+    const newArticles = articles.map((item) => {
+      // eslint-disable-next-line no-param-reassign
+      item.positions = item.positions.filter((el) => el.date >= selectedDay);
+      return item;
+    });
+
+    return res.send(newArticles);
   } catch (err) { return next(err); }
 };
 
