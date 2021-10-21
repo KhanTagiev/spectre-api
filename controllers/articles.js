@@ -33,17 +33,13 @@ const getAllArticles = async (req, res, next) => {
     if (user.ROLE === 'ADMIN' || user.ROLE === 'PURCHASER') {
       findConfig = { };
     }
-    const articles = await Article.find(findConfig).sort('-date');
-    const selectedDay = new Date();
-    selectedDay.setDate(selectedDay.getDate() - 7);
-    selectedDay.setHours(0, 0, 0, 0);
-    const newArticles = articles.map((item) => {
+    const articles = await Article.find(findConfig).sort('-date').then((data) => data.map((item) => {
       // eslint-disable-next-line no-param-reassign
-      item.positions = item.positions.filter((el) => el.date >= selectedDay);
+      item.positions = item.positions.splice(0, 24);
       return item;
-    });
+    }));
 
-    return res.send(newArticles);
+    return res.send(articles);
   } catch (err) { return next(err); }
 };
 
