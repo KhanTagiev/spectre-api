@@ -7,7 +7,7 @@ const { UPDATE_POSITIONS_STREAMS } = require('./constants');
 async function positionsUpdate() {
   try {
     const date = new Date().toLocaleString();
-    const articlesArray = await Article.find({});
+    const articlesArray = await Article.find({}).sort('-date');
     const arraySize = Math.ceil(articlesArray.length / UPDATE_POSITIONS_STREAMS);
     const newArticles = articlesArray.reduce((a, b) => {
       if (a[a.length - 1].length === arraySize) {
